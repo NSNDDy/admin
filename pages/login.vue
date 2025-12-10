@@ -133,7 +133,6 @@ export default {
           username : this.form.username,
           password : this.form.password
         });
-        console.log('Received response:', response.result);
         // const token = response.headers.accesstoken;
         // console.log('Received Token:', token);
 
