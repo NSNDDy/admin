@@ -128,21 +128,33 @@ export default {
     async handleLogin() {
       this.loading = true;
       
-      const res = this.$axios.$post("/api-login", {
-        username : this.form.username,
-        password : this.form.password
-      }).then(response => {
-        const token = response.header['accessToken'];
+      try {
+        const response = await this.$axios.$post("/api-login", {
+          username : this.form.username,
+          password : this.form.password
+        });
+        console.log('Received response:', response.result);
+        // const token = response.headers.accesstoken;
+        // console.log('Received Token:', token);
 
-        if(token){
-          localStorage.setItem('accessToken', token);
-          console.log('Access Token đã lưu : ' , token)
+        // if(token){
+        //   localStorage.setItem('accessToken', token);
+        //   console.log('Access Token đã lưu : ' , token);
+        //   this.$router.push("/dashboard");
+        // } else {
+        //   alert('Đăng nhập thất bại: Không nhận được token');
+        // }
+        if(response.result === 0){
+          this.$router.push("/dashboard");
+        } else {
+          alert('Đăng nhập thất bại: ' + response.data.message);
         }
-      })
-
-      console.log("Login thành công ! " , res )
-
-      this.$router.push("/dashboard");
+      } catch (error) {
+        console.error('Lỗi đăng nhập:', error);
+        alert('Đăng nhập thất bại: ' + (error.response?.data?.message || error.message));
+      } finally {
+        this.loading = false;
+      }
     },
     togglePassword() {
       this.showPassword = !this.showPassword;
