@@ -563,5 +563,15 @@
 <script>
 
 export default {
+    name: 'BodyPage',
+    layout: 'listbase',
+    methods:{
+        hand(){
+            this.$router.push('/news')
+        },
+        goToChat() {
+            this.$router.push('/chat')
+        }
+    }
 }
 </script>
