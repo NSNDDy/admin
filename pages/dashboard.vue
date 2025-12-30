@@ -3,15 +3,6 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <div>
         <div class="dashboard-wrapper">
-            <aside class="dashboard-sidebar">
-                <h2>Dashboard</h2>
-                <ul>
-                    <li><a href="/news">Home</a></li>
-                    <li><a href="/body">Users</a></li>
-                    <li><a href="#">Posts</a></li>
-                    <li><a href="#">Settings</a></li>
-                </ul>
-            </aside>
             <main class="dashboard-main">
                 <header class="dashboard-header">
                     <h1>Welcome to Dashboard</h1>
