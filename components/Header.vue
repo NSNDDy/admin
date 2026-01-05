@@ -77,6 +77,7 @@ export default {
     methods: {
       checkLoginStatus() {
         const token = localStorage.getItem('accessToken');
+        console.log('Access Token:', token);
         const userInfo = localStorage.getItem('userInfo');
         
         if (token) {
