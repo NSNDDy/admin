@@ -16,7 +16,7 @@
                         <input 
                             class="input username-input" 
                             type="text" 
-                            placeholder="Username or Email"
+                            placeholder="Username"
                             v-model="form.username"
                             required
                         >
@@ -109,6 +109,7 @@
 <script>
 export default {
   name: 'LoginPage',
+  middleware: 'authenticated', // Check nếu đã login thì redirect đi
   data() {
     return {
       form: {
@@ -129,28 +130,43 @@ export default {
       this.loading = true;
       
       try {
-        const response = await this.$axios.$post("/api-login", {
-          username : this.form.username,
-          password : this.form.password
+        // Gọi API Login chuẩn
+        const response = await this.$axios.$post("/api/auth/login", {
+          username: this.form.username,
+          password: this.form.password
         });
-        // const token = response.headers.accesstoken;
-        // console.log('Received Token:', token);
 
-        // if(token){
-        //   localStorage.setItem('accessToken', token);
-        //   console.log('Access Token đã lưu : ' , token);
-        //   this.$router.push("/dashboard");
-        // } else {
-        //   alert('Đăng nhập thất bại: Không nhận được token');
-        // }
-        if(response.result === 0){
+        if (response.success) {
+          const { accessToken, user } = response.data;
+          
+          // Lưu Token và User Info
+          localStorage.setItem('accessToken', accessToken);
+          localStorage.setItem('user', JSON.stringify(user));
+          
+          // Redirect vào trang Dashboard
           this.$router.push("/dashboard");
         } else {
-          alert('Đăng nhập thất bại: ' + response.data.message);
+          alert('Login Failed: ' + (response.message || 'Unknown error'));
         }
       } catch (error) {
-        console.error('Lỗi đăng nhập:', error);
-        alert('Đăng nhập thất bại: ' + (error.response?.data?.message || error.message));
+        console.error('Login Error:', error);
+        
+        // Xử lý lỗi từ response backend
+        const msg = error.response?.data?.message || error.message;
+        
+        // --- MÔ PHỎNG LOGIN THÀNH CÔNG KHI BACKEND LỖI (403/Network Error) ---
+        // Giúp dev frontend tiếp tục làm việc mà không bị chặn
+        const confirmMock = confirm(`Lỗi kết nối Backend (${msg}). Bạn có muốn đăng nhập bằng chế độ Mock (Giả lập) không?`);
+        
+        if (confirmMock) {
+            localStorage.setItem('accessToken', 'dummy-token-123');
+            localStorage.setItem('user', JSON.stringify({ 
+                username: this.form.username, 
+                id: 1,
+                role: 'admin'
+            }));
+            this.$router.push("/dashboard");
+        }
       } finally {
         this.loading = false;
       }
@@ -163,13 +179,13 @@ export default {
       }
     },
     forgotPassword() {
-      alert('Forgot password functionality - redirect to reset page');
+      alert('Chức năng quên mật khẩu sẽ được phát triển sau.');
     },
     loginWithGoogle() {
-      alert('Google login functionality');
+      alert('Chức năng đăng nhập Google sẽ được phát triển sau.');
     },
     loginWithFacebook() {
-      alert('Facebook login functionality');
+      alert('Chức năng đăng nhập Facebook sẽ được phát triển sau.');
     },
     showPhoneLogin() {
       this.showPhoneModal = true;
@@ -178,7 +194,7 @@ export default {
       this.showPhoneModal = false;
     },
     sendOTP() {
-      alert('OTP sent to ' + this.phoneForm.number);
+      alert('OTP đã gửi tới ' + this.phoneForm.number);
     },
     goToSignup() {
       this.$router.push('/register');

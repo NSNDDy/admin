@@ -37,6 +37,7 @@ export default {
     name: 'DashboardPage',
     components:{},
     layout: 'listbase',
+    middleware: 'authenticated',
     methods:{
         hand(){
             this.$router.push('/news')

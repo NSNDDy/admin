@@ -16,14 +16,20 @@
                 <form class="register-form" @submit.prevent="handleRegister">
 
                     <div class="input-group">
-                        <input class="input username-input" type="text" placeholder="Username or Email"
-                        v-model="form.username">
+                        <input class="input username-input" type="text" placeholder="Username"
+                        v-model="form.username" required>
                         <i class="fa-solid fa-user icon user-icon"></i>
                     </div>
 
                     <div class="input-group">
+                        <input class="input email-input" type="email" placeholder="Email"
+                        v-model="form.email" required>
+                        <i class="fa-solid fa-envelope icon email-icon"></i>
+                    </div>
+
+                    <div class="input-group">
                         <input class="input password-input" type="password" placeholder="Password"
-                        v-model="form.password">
+                        v-model="form.password" required>
                         <i class="fa-solid fa-lock icon lock-icon"></i>
                     </div>
 
@@ -64,6 +70,7 @@ export default {
         return {
             form:{
                 username:'',
+                email: '',
                 password:'',
             },
             loading: false,
@@ -77,15 +84,25 @@ export default {
 
        async handleRegister(){
             this.loading = true
+            
+            try {
+                // API: /api/auth/register (username, password, email)
+                const res = await this.$axios.$post('/api/auth/register', {
+                    username : this.form.username,
+                    email: this.form.email,
+                    password : this.form.password
+                })
 
-            const res = await this.$axios.$post('/auth/register', {
-                username : this.form.username,
-                password : this.form.password
-            })
-
-            console.log("Đăng kí thành công ! " , res)
-            alert('Đăng kí thành công !')
-            this.$router.push('/login')
+                console.log("Đăng kí thành công ! " , res)
+                alert('Đăng kí thành công ! Vui lòng đăng nhập.')
+                this.$router.push('/login')
+            } catch (error) {
+                console.error(error)
+                const msg = error.response?.data?.message || 'Đăng ký thất bại'
+                alert(msg)
+            } finally {
+                this.loading = false
+            }
         }
     }
 }

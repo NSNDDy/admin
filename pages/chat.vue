@@ -3,7 +3,7 @@
         <div class="chat-wrapper">
             <div class="chat-header">
                 <div class="chat-header-title">
-                    <h2>Chat Room</h2>
+                    <h2>Chat Room: {{ roomId }}</h2>
                     <p class="status" :class="{ online: isConnected }">
                         {{ isConnected ? '🟢 Online' : '🔴 Offline' }}
                     </p>
@@ -16,13 +16,13 @@
                     <p>Không có tin nhắn nào. Bắt đầu cuộc trò chuyện!</p>
                 </div>
                 <div v-for="(message, index) in messages" :key="index" 
-                     :class="['message', message.isOwn ? 'own' : 'other']">
+                     :class="['message', isMyMessage(message) ? 'own' : 'other']">
                     <div class="message-info">
-                        <span class="username">{{ message.username }}</span>
-                        <span class="time">{{ formatTime(message.time) }}</span>
+                        <span class="username">{{ message.sender.username }}</span>
+                        <span class="time">{{ formatTime(message.timestamp) }}</span>
                     </div>
                     <div class="message-content">
-                        {{ message.text }}
+                        {{ message.content }}
                     </div>
                 </div>
             </div>
@@ -47,7 +47,7 @@
                     </button>
                 </div>
                 <div v-if="!isConnected" class="offline-notice">
-                    ⚠️ Bạn đang offline. Vui lòng kiểm tra kết nối.
+                    ⚠️ Đang kết nối tới máy chủ...
                 </div>
             </div>
         </div>
@@ -60,134 +60,126 @@ import io from 'socket.io-client'
 export default {
     name: 'ChatPage',
     layout: 'default',
+    middleware: 'authenticated', // Bắt buộc phải login mới vào được
     data() {
         return {
             socket: null,
             isConnected: false,
             newMessage: '',
             messages: [],
-            username: 'User',
+            currentUser: null,
             roomId: 'general'
         }
     },
     mounted() {
-        this.initializeChat()
+        this.loadUser();
+        this.initializeChat();
     },
     beforeDestroy() {
         if (this.socket) {
-            this.socket.disconnect()
+            this.socket.disconnect();
         }
     },
     methods: {
-        initializeChat() {
-            // Kết nối tới server (mô phỏng realtime)
-            // Nếu có server thực tế, thay đổi URL
+        loadUser() {
             try {
-                this.socket = io('http://localhost:3001', {
-                    reconnection: true,
-                    reconnectionDelay: 1000,
-                    reconnectionDelayMax: 5000,
-                    reconnectionAttempts: 5
-                })
-
-                this.socket.on('connect', () => {
-                    this.isConnected = true
-                    console.log('Connected to chat server')
-                    this.socket.emit('join-room', { 
-                        room: this.roomId, 
-                        username: this.username 
-                    })
-                })
-
-                this.socket.on('disconnect', () => {
-                    this.isConnected = false
-                    console.log('Disconnected from chat server')
-                })
-
-                this.socket.on('message', (data) => {
-                    this.messages.push({
-                        username: data.username,
-                        text: data.text,
-                        time: new Date(),
-                        isOwn: data.username === this.username
-                    })
-                    this.$nextTick(() => {
-                        this.scrollToBottom()
-                    })
-                })
-
-                this.socket.on('load-messages', (data) => {
-                    this.messages = data.map(msg => ({
-                        ...msg,
-                        time: new Date(msg.time),
-                        isOwn: msg.username === this.username
-                    }))
-                    this.$nextTick(() => {
-                        this.scrollToBottom()
-                    })
-                })
-
-            } catch (error) {
-                console.error('Lỗi kết nối chat:', error)
-                // Nếu không có server, sử dụng chế độ demo
-                this.initializeDemoChat()
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    this.currentUser = JSON.parse(userStr);
+                }
+            } catch (e) {
+                console.error("Error parsing user data", e);
             }
         },
-        initializeDemoChat() {
-            // Chế độ demo khi không có server
-            this.isConnected = true
-            this.messages = [
-                {
-                    username: 'Admin',
-                    text: 'Chào mừng đến phòng chat!',
-                    time: new Date(Date.now() - 60000),
-                    isOwn: false
+        initializeChat() {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                this.$router.push('/login');
+                return;
+            }
+
+            // Kết nối tới server Socket.IO (Port 3001)
+            // Cập nhật theo hướng dẫn Backend: dùng query param 'token'
+            this.socket = io('http://localhost:3001', {
+                reconnection: true,
+                query: {
+                    token: `Bearer ${token}`
                 }
-            ]
+            });
+
+            this.socket.on('connect', () => {
+                this.isConnected = true;
+                console.log('Connected to chat server');
+                
+                // Join Room
+                this.socket.emit('join_room', { 
+                    roomId: this.roomId 
+                });
+            });
+
+            this.socket.on('disconnect', () => {
+                this.isConnected = false;
+                console.log('Disconnected from server');
+            });
+
+            this.socket.on('connect_error', (err) => {
+                console.error('Connection Error:', err.message);
+                this.isConnected = false;
+                if (err.message === "Authentication error") {
+                    alert("Phiên đăng nhập hết hạn.");
+                    this.logout();
+                }
+            });
+
+            // Nhận tin nhắn từ Server (bao gồm cả tin mình vừa gửi)
+            this.socket.on('receive_message', (message) => {
+                this.messages.push(message);
+                this.scrollToBottom();
+            });
+
+            // Nhận thông báo lỗi từ Server
+            this.socket.on('error', (error) => {
+                alert('Chat Error: ' + error.message);
+            });
         },
         sendMessage() {
-            if (!this.newMessage.trim()) {
-                return
-            }
+            if (!this.newMessage.trim() || !this.isConnected) return;
 
-            const message = {
-                username: this.username,
-                text: this.newMessage,
-                time: new Date(),
-                isOwn: true
-            }
+            // Gửi tin nhắn lên Server
+            // Lưu ý: Không push vào messages ngay, mà chờ 'receive_message' từ server
+            // để đảm bảo đồng bộ dữ liệu và confirm tin nhắn đã gửi thành công.
+            this.socket.emit('send_message', {
+                roomId: this.roomId,
+                content: this.newMessage,
+                type: 'TEXT'
+            });
 
-            this.messages.push(message)
-
-            if (this.socket && this.socket.connected) {
-                this.socket.emit('send-message', {
-                    room: this.roomId,
-                    username: this.username,
-                    text: this.newMessage,
-                    time: new Date()
-                })
-            }
-
-            this.newMessage = ''
-            this.$nextTick(() => {
-                this.scrollToBottom()
-            })
+            this.newMessage = '';
+        },
+        isMyMessage(message) {
+            return this.currentUser && message.sender.id === this.currentUser.id;
+        },
+        formatTime(timestamp) {
+            if (!timestamp) return '';
+            return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         },
         scrollToBottom() {
-            if (this.$refs.messagesContainer) {
-                this.$refs.messagesContainer.scrollTop = 
-                    this.$refs.messagesContainer.scrollHeight
-            }
-        },
-        formatTime(date) {
-            if (!date) return ''
-            const hours = date.getHours().toString().padStart(2, '0')
-            const minutes = date.getMinutes().toString().padStart(2, '0')
-            return `${hours}:${minutes}`
+            this.$nextTick(() => {
+                const container = this.$refs.messagesContainer;
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            });
         },
         goBack() {
             this.$router.push('/dashboard')
         }
+        // logout() {
+        //     localStorage.removeItem('accessToken');
+        //     localStorage.removeItem('user');
+        //     if (this.socket) this.socket.disconnect();
+        //     this.$router.push('/login');
+        // }
     }
 }
 </script>

@@ -57,6 +57,7 @@
           </ul>
         </div>
       </div>
+      
   </header>
 </template>
 
@@ -76,17 +77,19 @@ export default {
     },
     methods: {
       checkLoginStatus() {
+        if (process.server) return; // Chỉ chạy ở client side
+
         const token = localStorage.getItem('accessToken');
-        console.log('Access Token:', token);
-        const userInfo = localStorage.getItem('userInfo');
+        const userStr = localStorage.getItem('user');
         
         if (token) {
           this.isLoggedIn = true;
-          if (userInfo) {
+          if (userStr) {
             try {
-              const user = JSON.parse(userInfo);
+              const user = JSON.parse(userStr);
               this.userName = user.username || 'User';
             } catch (e) {
+              console.error("Error parsing user data in Header", e);
               this.userName = 'User';
             }
           }
@@ -100,17 +103,20 @@ export default {
       },
       goToProfile() {
         this.closeAccountMenu();
-        this.$router.push('/profile');
+        // this.$router.push('/profile');
+        alert("Chức năng đang phát triển");
       },
       goToSettings() {
         this.closeAccountMenu();
-        this.$router.push('/settings');
+        // this.$router.push('/settings');
+        alert("Chức năng đang phát triển");
       },
       logout() {
         this.closeAccountMenu();
         localStorage.removeItem('accessToken');
-        localStorage.removeItem('userInfo');
+        localStorage.removeItem('user');
         this.isLoggedIn = false;
+        this.userName = 'User';
         this.$router.push('/login');
       }
     }
