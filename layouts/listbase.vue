@@ -41,14 +41,12 @@ export default {
             }
         },
         handleResize() {
-            // Optional: Auto-collapse on resize to mobile
+            // Mobile
             if (window.innerWidth <= 768 && this.sidebarOpen) {
                 this.sidebarOpen = false;
             }
-            // Optional: Auto-expand on resize to desktop? Maybe not.
+            // Desktop
             if (window.innerWidth > 768 && !this.sidebarOpen) {
-                 // Keep user preference or auto-open? 
-                 // Usually auto-open is nice.
                  this.sidebarOpen = true;
             }
         },
@@ -85,7 +83,6 @@ export default {
     padding-left: 0;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .app-body {
         padding-left: 0;

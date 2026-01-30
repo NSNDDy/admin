@@ -88,9 +88,7 @@ export default {
                 this.$router.push('/login');
                 return;
             }
-
             // Kết nối tới server Socket.IO (Port 3001)
-            // Cập nhật theo hướng dẫn Backend: dùng query param 'token'
             this.socket = io('http://localhost:3001', {
                 reconnection: true,
                 query: {
@@ -140,10 +138,7 @@ export default {
         },
         sendMessage() {
             if (!this.newMessage.trim() || !this.isConnected) return;
-
             // Gửi tin nhắn lên Server
-            // Lưu ý: Không push vào messages ngay, mà chờ 'receive_message' từ server
-            // để đảm bảo đồng bộ dữ liệu và confirm tin nhắn đã gửi thành công.
             this.socket.emit('send_message', {
                 roomId: this.roomId,
                 content: this.newMessage,
@@ -179,20 +174,11 @@ export default {
         async fetchChatHistory() {
             this.isLoadingHistory = true;
             try {
-                const token = localStorage.getItem('accessToken');
-                // Gọi API lấy lịch sử thông qua Proxy của Nuxt (để tránh lỗi CORS)
-                // Nuxt sẽ tự động chuyển tiếp request này sang http://localhost:8080/api/history
-                const res = await this.$axios.$get('/api/history', {
-                    params: { 
-                        rommId: this.roomId 
-                    },
-                    headers: { 
-                        'accessToken': token,
-                        'rommId': this.roomId 
-                    }
-                });
-
-                // Kiểm tra data trả về (Backend trả về mảng trực tiếp hoặc object chứa data)
+                // SỬ DỤNG SERVICE PATTERN (Mới)
+                // Không cần lấy token thủ công, không cần set header thủ công
+                const res = await this.$api.chat.getHistory(this.roomId);
+                
+                // Kiểm tra data trả về 
                 const historyData = Array.isArray(res) ? res : (res.data || []);
                 
                 if (historyData.length > 0) {
@@ -204,7 +190,6 @@ export default {
                 }
             } catch (error) {
                 console.error("Lỗi tải lịch sử chat:", error);
-                // Fallback: Lấy từ LocalStorage nếu lỗi
                 try {
                     const cached = localStorage.getItem(`chat_history_${this.roomId}`);
                     if (cached) {
@@ -216,12 +201,7 @@ export default {
                 this.isLoadingHistory = false;
             }
         }
-        // logout() {
-        //     localStorage.removeItem('accessToken');
-        //     localStorage.removeItem('user');
-        //     if (this.socket) this.socket.disconnect();
-        //     this.$router.push('/login');
-        // }
+        
     }
 }
 </script>

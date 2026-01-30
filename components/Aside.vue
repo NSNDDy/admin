@@ -73,19 +73,7 @@ export default {
 .toggle-icon span {
     width: 25px;
     height: 3px;
-    background: #2c3e50; /* Changed to dark color for visibility on white background when closed? Or keep white if header is dark? */
-    /* Original was white. If sidebar is closed, it might be on white background. */
-    /* Let's assume background is light and make it dark, or keep it white if it's on a dark header? */
-    /* Position top: 90px is below header probably. */
-    /* If closed, it floats on body. Body is usually light. */
-    /* So I should probably change color to black/dark when closed, and white when open (if on sidebar)? */
-    /* But sidebar is dark. */
-    /* Wait, when open, button is at 205px. Sidebar is 250px. So button is INSIDE sidebar area? */
-    /* If sidebar is 250px wide, and button is at 205px, it is inside. */
-    /* So when open, it's on dark sidebar -> White is good. */
-    /* When closed, it's at 20px. Sidebar is hidden. It's on body. Body background? */
-    /* Usually white. So White icon on White body = Invisible. */
-    /* I should change color based on state. */
+    background: #2c3e50; 
     background: #333;
     border-radius: 2px;
     transition: all 0.3s ease;
@@ -186,15 +174,12 @@ export default {
     z-index: 997;
 }
 
-/* Responsive Design */
+/* Mobile */
 @media (max-width: 768px) {
     .sidebar-toggle {
         display: flex;
     }
     
-    /* On mobile, button position might need to be different? */
-    /* Let's keep the same logic: 20px closed, 205px open */
-
     .sidebar-overlay {
         display: block;
     }
@@ -213,8 +198,6 @@ export default {
     .close-btn {
         display: none !important;
     }
-    
-    /* We removed the forced transform: translateX(0) here */
-    /* Now it relies on .open class */
+
 }
 </style>

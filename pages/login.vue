@@ -138,7 +138,6 @@ export default {
 
         if (response.success) {
           const { accessToken, user } = response.data;
-          
           // Lưu Token và User Info
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('user', JSON.stringify(user));
@@ -159,25 +158,8 @@ export default {
         
         // Xử lý lỗi từ response backend
         const msg = error.response?.data?.message || error.message;
+        confirm(`Lỗi kết nối Backend (${msg})`);
         
-        // --- MÔ PHỎNG LOGIN THÀNH CÔNG KHI BACKEND LỖI (403/Network Error) ---
-        // Giúp dev frontend tiếp tục làm việc mà không bị chặn
-        const confirmMock = confirm(`Lỗi kết nối Backend (${msg}). Bạn có muốn đăng nhập bằng chế độ Mock (Giả lập) không?`);
-        
-        if (confirmMock) {
-            localStorage.setItem('accessToken', 'dummy-token-123');
-            localStorage.setItem('user', JSON.stringify({ 
-                username: this.form.username, 
-                id: 1,
-                role: 'admin'
-            }));
-            
-            // Set expiry cho mock login luôn
-            const days = this.form.remember ? 7 : 1;
-            localStorage.setItem('tokenExpiry', new Date().getTime() + days * 24 * 60 * 60 * 1000);
-
-            this.$router.push("/dashboard");
-        }
       } finally {
         this.loading = false;
       }

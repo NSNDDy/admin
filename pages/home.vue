@@ -9,7 +9,6 @@
 <script>
 import Header from '~/components/Header.vue'
 import Footer from '~/components/Footer.vue'
-import Body from '~/components/Body.vue'
 
 export default {
   name: 'HomePage',
@@ -26,8 +25,7 @@ export default {
 
   components: {
     Header,
-    Footer,
-    Body
+    Footer
   }
 };
 </script>
