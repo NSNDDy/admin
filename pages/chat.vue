@@ -15,8 +15,8 @@
                 <div v-if="messages.length === 0" class="empty-chat">
                     <p>Không có tin nhắn nào. Bắt đầu cuộc trò chuyện!</p>
                 </div>
-                <div v-for="(message, index) in messages" :key="index" 
-                     :class="['message', isMyMessage(message) ? 'own' : 'other']">
+                <div v-for="(message, index) in messages" :key="index"
+                    :class="['message', isMyMessage(message) ? 'own' : 'other']">
                     <div class="message-info">
                         <span class="username">{{ message.sender.username }}</span>
                         <span class="time">{{ formatTime(message.timestamp) }}</span>
@@ -29,20 +29,9 @@
 
             <div class="chat-input-area">
                 <div class="input-wrapper">
-                    <input 
-                        v-model="newMessage" 
-                        @keyup.enter="sendMessage"
-                        @keydown.enter.prevent="sendMessage"
-                        type="text" 
-                        class="chat-input" 
-                        placeholder="Nhập tin nhắn..."
-                        :disabled="!isConnected"
-                    >
-                    <button 
-                        @click="sendMessage" 
-                        class="btn-send"
-                        :disabled="!isConnected || !newMessage.trim()"
-                    >
+                    <input v-model="newMessage" @keyup.enter="sendMessage" @keydown.enter.prevent="sendMessage"
+                        type="text" class="chat-input" placeholder="Nhập tin nhắn..." :disabled="!isConnected">
+                    <button @click="sendMessage" class="btn-send" :disabled="!isConnected || !newMessage.trim()">
                         Gửi
                     </button>
                 </div>
@@ -68,7 +57,9 @@ export default {
             newMessage: '',
             messages: [],
             currentUser: null,
-            roomId: 'general'
+            roomId: 'general',
+            isLoadingHistory: false,
+            page: 0
         }
     },
     mounted() {
@@ -110,11 +101,13 @@ export default {
             this.socket.on('connect', () => {
                 this.isConnected = true;
                 console.log('Connected to chat server');
-                
+
                 // Join Room
-                this.socket.emit('join_room', { 
-                    roomId: this.roomId 
+                this.socket.emit('join_room', {
+                    roomId: this.roomId
                 });
+
+                this.fetchChatHistory();
             });
 
             this.socket.on('disconnect', () => {
@@ -135,6 +128,9 @@ export default {
             this.socket.on('receive_message', (message) => {
                 this.messages.push(message);
                 this.scrollToBottom();
+                try {
+                    localStorage.setItem(`chat_history_${this.roomId}`, JSON.stringify(this.messages));
+                } catch (e) {}
             });
 
             // Nhận thông báo lỗi từ Server
@@ -173,6 +169,52 @@ export default {
         },
         goBack() {
             this.$router.push('/dashboard')
+        },
+
+        async joinRoom() {
+            if (!this.username || !this.roomId) return;
+            
+        }
+        ,
+        async fetchChatHistory() {
+            this.isLoadingHistory = true;
+            try {
+                const token = localStorage.getItem('accessToken');
+                // Gọi API lấy lịch sử thông qua Proxy của Nuxt (để tránh lỗi CORS)
+                // Nuxt sẽ tự động chuyển tiếp request này sang http://localhost:8080/api/history
+                const res = await this.$axios.$get('/api/history', {
+                    params: { 
+                        rommId: this.roomId 
+                    },
+                    headers: { 
+                        'accessToken': token,
+                        'rommId': this.roomId 
+                    }
+                });
+
+                // Kiểm tra data trả về (Backend trả về mảng trực tiếp hoặc object chứa data)
+                const historyData = Array.isArray(res) ? res : (res.data || []);
+                
+                if (historyData.length > 0) {
+                    this.messages = historyData.reverse();
+                    try {
+                        localStorage.setItem(`chat_history_${this.roomId}`, JSON.stringify(this.messages));
+                    } catch (e) {}
+                    this.scrollToBottom();
+                }
+            } catch (error) {
+                console.error("Lỗi tải lịch sử chat:", error);
+                // Fallback: Lấy từ LocalStorage nếu lỗi
+                try {
+                    const cached = localStorage.getItem(`chat_history_${this.roomId}`);
+                    if (cached) {
+                        this.messages = JSON.parse(cached);
+                        this.scrollToBottom();
+                    }
+                } catch (e) {}
+            } finally {
+                this.isLoadingHistory = false;
+            }
         }
         // logout() {
         //     localStorage.removeItem('accessToken');
@@ -278,6 +320,7 @@ export default {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

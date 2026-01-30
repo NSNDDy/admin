@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button class="sidebar-toggle" @click="toggleSidebar" :title="isOpen ? 'Đóng thanh bên' : 'Mở thanh bên'">
+        <button class="sidebar-toggle" :class="{ 'sidebar-open': isOpen }" @click="toggleSidebar" :title="isOpen ? 'Đóng thanh bên' : 'Mở thanh bên'">
             <span class="toggle-icon" :class="{ open: isOpen }">
                 <span></span>
                 <span></span>
@@ -27,17 +27,18 @@
 <script>
 export default {
     name: 'Aside',
-    data() {
-        return {
-            isOpen: false
+    props: {
+        isOpen: {
+            type: Boolean,
+            default: false
         }
     },
     methods: {
         toggleSidebar() {
-            this.isOpen = !this.isOpen;
+            this.$emit('toggle');
         },
         closeSidebar() {
-            this.isOpen = false;
+            this.$emit('close');
         }
     }
 }
@@ -47,7 +48,7 @@ export default {
 .sidebar-toggle {
     display: flex;
     position: fixed;
-    left: 205px;
+    left: 20px;
     top: 90px;
     z-index: 9999;
     background: none;
@@ -56,6 +57,11 @@ export default {
     border-radius: 5px;
     cursor: pointer;
     flex-direction: column;
+    transition: left 0.3s ease;
+}
+
+.sidebar-toggle.sidebar-open {
+    left: 205px;
 }
 
 .toggle-icon {
@@ -67,9 +73,26 @@ export default {
 .toggle-icon span {
     width: 25px;
     height: 3px;
-    background: white;
+    background: #2c3e50; /* Changed to dark color for visibility on white background when closed? Or keep white if header is dark? */
+    /* Original was white. If sidebar is closed, it might be on white background. */
+    /* Let's assume background is light and make it dark, or keep it white if it's on a dark header? */
+    /* Position top: 90px is below header probably. */
+    /* If closed, it floats on body. Body is usually light. */
+    /* So I should probably change color to black/dark when closed, and white when open (if on sidebar)? */
+    /* But sidebar is dark. */
+    /* Wait, when open, button is at 205px. Sidebar is 250px. So button is INSIDE sidebar area? */
+    /* If sidebar is 250px wide, and button is at 205px, it is inside. */
+    /* So when open, it's on dark sidebar -> White is good. */
+    /* When closed, it's at 20px. Sidebar is hidden. It's on body. Body background? */
+    /* Usually white. So White icon on White body = Invisible. */
+    /* I should change color based on state. */
+    background: #333;
     border-radius: 2px;
     transition: all 0.3s ease;
+}
+
+.sidebar-toggle.sidebar-open .toggle-icon span {
+    background: white; /* On dark sidebar */
 }
 
 .toggle-icon.open span:nth-child(1) {
@@ -97,6 +120,11 @@ export default {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     z-index: 998;
+    transform: translateX(-100%);
+}
+
+.dashboard-sidebar.open {
+    transform: translateX(0);
 }
 
 .sidebar-header {
@@ -163,20 +191,11 @@ export default {
     .sidebar-toggle {
         display: flex;
     }
-
-    .dashboard-sidebar {
-        transform: translateX(-100%);
-    }
-
-    .dashboard-sidebar.open {
-        transform: translateX(0);
-    }
+    
+    /* On mobile, button position might need to be different? */
+    /* Let's keep the same logic: 20px closed, 205px open */
 
     .sidebar-overlay {
-        display: block;
-    }
-
-    .sidebar-overlay.open {
         display: block;
     }
 
@@ -185,7 +204,7 @@ export default {
     }
 }
 
-/* Desktop - Sidebar luôn hiển thị */
+/* Desktop */
 @media (min-width: 769px) {
     .sidebar-overlay {
         display: none !important;
@@ -194,13 +213,8 @@ export default {
     .close-btn {
         display: none !important;
     }
-
-    .dashboard-sidebar {
-        transform: translateX(0);
-    }
-
-    .dashboard-sidebar.open {
-        transform: translateX(0);
-    }
+    
+    /* We removed the forced transform: translateX(0) here */
+    /* Now it relies on .open class */
 }
 </style>

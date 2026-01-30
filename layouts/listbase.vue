@@ -2,8 +2,8 @@
     <div class="layout-wrapper">
         <Header />
         <div class="layout-container">
-            <Aside />
-            <div class="app-body list-base">
+            <Aside :isOpen="sidebarOpen" @toggle="toggleSidebar" @close="closeSidebar" />
+            <div class="app-body list-base" :class="{ 'sidebar-closed': !sidebarOpen }">
                 <nuxt />
             </div>
         </div>
@@ -19,6 +19,45 @@ export default {
         Header,
         Footer,
         Aside
+    },
+    data() {
+        return {
+            sidebarOpen: true
+        }
+    },
+    mounted() {
+        this.checkScreen();
+        window.addEventListener('resize', this.handleResize);
+    },
+    beforeDestroy() {
+        window.removeEventListener('resize', this.handleResize);
+    },
+    methods: {
+        checkScreen() {
+            if (window.innerWidth <= 768) {
+                this.sidebarOpen = false;
+            } else {
+                this.sidebarOpen = true;
+            }
+        },
+        handleResize() {
+            // Optional: Auto-collapse on resize to mobile
+            if (window.innerWidth <= 768 && this.sidebarOpen) {
+                this.sidebarOpen = false;
+            }
+            // Optional: Auto-expand on resize to desktop? Maybe not.
+            if (window.innerWidth > 768 && !this.sidebarOpen) {
+                 // Keep user preference or auto-open? 
+                 // Usually auto-open is nice.
+                 this.sidebarOpen = true;
+            }
+        },
+        toggleSidebar() {
+            this.sidebarOpen = !this.sidebarOpen;
+        },
+        closeSidebar() {
+            this.sidebarOpen = false;
+        }
     }
 
 }
@@ -40,6 +79,10 @@ export default {
     flex: 1;
     padding-left: 250px;
     transition: padding-left 0.3s ease;
+}
+
+.app-body.sidebar-closed {
+    padding-left: 0;
 }
 
 /* Responsive Design */

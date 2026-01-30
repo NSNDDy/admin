@@ -142,6 +142,12 @@ export default {
           // Lưu Token và User Info
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('user', JSON.stringify(user));
+
+          // Xử lý thời gian hết hạn (Expiration)
+          // Nếu Remember Me: 7 ngày, Ngược lại: 1 ngày (24h)
+          const days = this.form.remember ? 7 : 1;
+          const expiryTime = new Date().getTime() + days * 24 * 60 * 60 * 1000;
+          localStorage.setItem('tokenExpiry', expiryTime);
           
           // Redirect vào trang Dashboard
           this.$router.push("/dashboard");
@@ -165,6 +171,11 @@ export default {
                 id: 1,
                 role: 'admin'
             }));
+            
+            // Set expiry cho mock login luôn
+            const days = this.form.remember ? 7 : 1;
+            localStorage.setItem('tokenExpiry', new Date().getTime() + days * 24 * 60 * 60 * 1000);
+
             this.$router.push("/dashboard");
         }
       } finally {
