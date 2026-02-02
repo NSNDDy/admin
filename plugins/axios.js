@@ -7,6 +7,19 @@ export default function ({ $axios, redirect }) {
         config.headers.common['Authorization'] = `Bearer ${token}`;
       }
     }
+
+    // Tự động format lại tham số phân trang nếu có (Chuẩn hóa API)
+    if (config.data && config.data.pagination) {
+      const { pagination, ...otherData } = config.data;
+      
+      config.data = {
+        ...otherData,
+        page: pagination.currentPage,
+        limit: pagination.recordsPerPage,
+        // Thêm các tham số sort nếu cần
+      };
+    }
+
     console.log('Making request to ' + config.url);
   });
 
