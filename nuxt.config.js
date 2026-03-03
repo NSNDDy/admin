@@ -83,19 +83,19 @@ export default {
 
    axios: {
     proxy: true,
-    baseURL: 'http://localhost:8080'
+    baseURL: 'http://localhost:8090'
   },
   proxy: {
     '/api/': {
-      target: 'http://localhost:8080',
+      target: 'http://localhost:8090',
       changeOrigin: true
     },
     '/auth/': {
-      target: 'http://localhost:8080',
+      target: 'http://localhost:8090',
       changeOrigin: true
     },
     '/api-login': {
-      target: 'http://localhost:8080',
+      target: 'http://localhost:8090',
       changeOrigin: true
     }
   }
