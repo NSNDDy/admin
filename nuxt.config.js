@@ -37,6 +37,12 @@ export default {
     ]
   },
   /*
+  ** Environment variables
+  */
+  env: {
+    SOCKET_URL: process.env.SOCKET_URL || 'http://localhost:3001'
+  },
+  /*
   ** Customize the progress-bar color
   */
   loading: { color: '#fff' },
@@ -77,25 +83,25 @@ export default {
   },
 
   server: {
-    port: 4000,
-    host: 'localhost'
+    port: process.env.PORT || 4000,
+    host: process.env.HOST || 'localhost'
   },
 
    axios: {
     proxy: true,
-    baseURL: 'http://localhost:8080'
+    baseURL: process.env.API_URL || 'http://localhost:8090'
   },
   proxy: {
     '/api/': {
-      target: 'http://localhost:8080',
+      target: process.env.API_URL || 'http://localhost:8090',
       changeOrigin: true
     },
     '/auth/': {
-      target: 'http://localhost:8080',
+      target: process.env.API_URL || 'http://localhost:8090',
       changeOrigin: true
     },
     '/api-login': {
-      target: 'http://localhost:8080',
+      target: process.env.API_URL || 'http://localhost:8090',
       changeOrigin: true
     }
   }
