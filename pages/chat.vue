@@ -88,8 +88,8 @@ export default {
                 this.$router.push('/login');
                 return;
             }
-            // Kết nối tới server Socket.IO (Port 3001)
-            this.socket = io('http://localhost:3001', {
+            // Kết nối tới server Socket.IO
+            this.socket = io(process.env.SOCKET_URL, {
                 reconnection: true,
                 query: {
                     token: `Bearer ${token}`
