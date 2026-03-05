@@ -90,10 +90,13 @@ export default {
             }
             // Kết nối tới server Socket.IO
             this.socket = io(process.env.SOCKET_URL, {
+                transports: ['websocket', 'polling'],
+                path: '/socket.io',
                 reconnection: true,
-                query: {
-                    token: `Bearer ${token}`
-                }
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                query: { token: `Bearer ${token}` }
             });
 
             this.socket.on('connect', () => {
