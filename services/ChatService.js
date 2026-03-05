@@ -13,7 +13,7 @@ export default class ChatService extends BaseService {
       params: { roomId },
       headers: {
         'accessToken': token, // Backend cần cái này
-        'rommId': roomId      // Backend cần cái này (lưu ý chính tả rommId)
+        'roomId': roomId      // Backend cần cái này
       }
     });
   }
