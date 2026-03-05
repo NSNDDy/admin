@@ -64,6 +64,7 @@ export default {
     },
     mounted() {
         this.loadUser();
+        this.messages = [];
         this.initializeChat();
     },
     beforeDestroy() {
@@ -185,7 +186,7 @@ export default {
                 const historyData = Array.isArray(res) ? res : (res.data || []);
                 
                 if (historyData.length > 0) {
-                    this.messages = historyData.reverse();
+                    this.messages = historyData;
                     try {
                         localStorage.setItem(`chat_history_${this.roomId}`, JSON.stringify(this.messages));
                     } catch (e) {}
