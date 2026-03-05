@@ -83,8 +83,8 @@ export default {
   },
 
   server: {
-    port: process.env.PORT || 4000,
-    host: process.env.HOST || 'localhost'
+    port: process.env.PORT || process.env.NUXT_PORT || 4000,
+    host: process.env.HOST || process.env.NUXT_HOST || '0.0.0.0'
   },
 
    axios: {
