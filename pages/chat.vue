@@ -96,7 +96,7 @@ export default {
                 reconnectionAttempts: 5,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
-                query: { token: `Bearer ${token}` }
+                query: { token }
             });
 
             this.socket.on('connect', () => {
