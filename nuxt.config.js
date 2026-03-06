@@ -40,7 +40,7 @@ export default {
   ** Environment variables
   */
   env: {
-    SOCKET_URL: process.env.SOCKET_URL || 'http://localhost:3001'
+    SOCKET_URL: process.env.SOCKET_URL
   },
   /*
   ** Customize the progress-bar color

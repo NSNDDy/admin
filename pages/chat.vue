@@ -89,15 +89,28 @@ export default {
                 this.$router.push('/login');
                 return;
             }
+
+            // Determine Socket URL dynamically
+            let socketUrl = process.env.SOCKET_URL;
+            if (!socketUrl) {
+                if (window.location.hostname === 'localhost') {
+                    socketUrl = 'http://localhost:3001';
+                } else {
+                    socketUrl = window.location.origin;
+                }
+            }
+            console.log('Connecting to Socket.IO at:', socketUrl);
+
             // Kết nối tới server Socket.IO
-            this.socket = io(process.env.SOCKET_URL, {
+            this.socket = io(socketUrl, {
                 transports: ['websocket', 'polling'],
                 path: '/socket.io',
                 reconnection: true,
                 reconnectionAttempts: 5,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
-                query: { token }
+                auth: { token }, // Socket.IO v4 authentication
+                query: { token } // Backward compatibility
             });
 
             this.socket.on('connect', () => {
