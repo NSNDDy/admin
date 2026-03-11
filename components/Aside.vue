@@ -14,6 +14,7 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a href="/dashboard" @click="closeSidebar">Dashboard</a></li>
+                <li><a href="/calendar" @click="closeSidebar">Calendar</a></li>
                 <li><a href="/body" @click="closeSidebar">Body</a></li>
                 <li><a href="/chat" @click="closeSidebar">Chat</a></li>
                 <li><a href="/news" @click="closeSidebar">News</a></li>
