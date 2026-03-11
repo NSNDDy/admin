@@ -90,12 +90,19 @@ export default {
                 return;
             }
 
-            // Determine Socket URL dynamically
-            // Production: dùng SOCKET_URL env (trỏ tới backend public URL qua Nginx)
-            // Local: fallback tới hostname:3001 (Socket.IO port trực tiếp)
+            // Determine Socket URL
+            // Production: SOCKET_URL env trỏ tới backend public URL (Nginx proxy /socket.io/ -> :3001)
+            // Local: kết nối trực tiếp tới hostname:3001
             let socketUrl = process.env.SOCKET_URL;
             if (!socketUrl) {
-                socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`;
+                const isProduction = window.location.protocol === 'https:';
+                if (isProduction) {
+                    // Production: cùng origin (nếu dùng Nginx proxy), hoặc cần set SOCKET_URL
+                    socketUrl = window.location.origin;
+                } else {
+                    // Local: kết nối trực tiếp tới Socket.IO port
+                    socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`;
+                }
             }
             console.log('Connecting to Socket.IO at:', socketUrl);
 
