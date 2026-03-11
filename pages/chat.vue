@@ -91,18 +91,11 @@ export default {
             }
 
             // Determine Socket URL
-            // Production: SOCKET_URL env trỏ tới backend public URL (Nginx proxy /socket.io/ -> :3001)
+            // Production: $config.socketUrl (set qua env SOCKET_URL trên Render)
             // Local: kết nối trực tiếp tới hostname:3001
-            let socketUrl = process.env.SOCKET_URL;
+            let socketUrl = this.$config.socketUrl || process.env.SOCKET_URL;
             if (!socketUrl) {
-                const isProduction = window.location.protocol === 'https:';
-                if (isProduction) {
-                    // Production: cùng origin (nếu dùng Nginx proxy), hoặc cần set SOCKET_URL
-                    socketUrl = window.location.origin;
-                } else {
-                    // Local: kết nối trực tiếp tới Socket.IO port
-                    socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`;
-                }
+                socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`;
             }
             console.log('Connecting to Socket.IO at:', socketUrl);
 

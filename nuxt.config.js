@@ -44,6 +44,10 @@ export default {
     API_URL: process.env.API_URL,
     BROWSER_API_URL: process.env.BROWSER_API_URL
   },
+  publicRuntimeConfig: {
+    socketUrl: process.env.SOCKET_URL || '',
+    apiUrl: process.env.API_URL || ''
+  },
   /*
   ** Customize the progress-bar color
   */
