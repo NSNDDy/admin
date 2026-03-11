@@ -14,6 +14,12 @@ COPY --from=build /app/static ./static
 COPY --from=build /app/nuxt.config.js ./nuxt.config.js
 COPY --from=build /app/package*.json ./
 COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/plugins ./plugins
+COPY --from=build /app/services ./services
+COPY --from=build /app/middleware ./middleware
+COPY --from=build /app/store ./store
+COPY --from=build /app/layouts ./layouts
+COPY --from=build /app/pages ./pages
 
 # Render sẽ tự động set biến môi trường PORT (ví dụ 10000).
 # Nuxt.js sẽ ưu tiên sử dụng process.env.PORT nếu có cấu hình trong nuxt.config.js.

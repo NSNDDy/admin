@@ -91,7 +91,8 @@ export default {
 
    axios: {
     proxy: true,
-    baseURL: process.env.API_URL || 'http://localhost:8090'
+    baseURL: process.env.API_URL || 'http://localhost:8090',
+    browserBaseURL: '/'
   },
   proxy: {
     '/api/': {

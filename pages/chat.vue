@@ -91,10 +91,10 @@ export default {
             }
 
             // Determine Socket URL dynamically
+            // Production: dùng SOCKET_URL env (trỏ tới backend public URL qua Nginx)
+            // Local: fallback tới hostname:3001 (Socket.IO port trực tiếp)
             let socketUrl = process.env.SOCKET_URL;
             if (!socketUrl) {
-                // Always use the hostname of the current page, but force port 3001 for the backend
-                // This works for localhost, 192.168.x.x, and other direct IP access
                 socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`;
             }
             console.log('Connecting to Socket.IO at:', socketUrl);
