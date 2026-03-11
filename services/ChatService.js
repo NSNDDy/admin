@@ -6,15 +6,8 @@ export default class ChatService extends BaseService {
 
   // Ví dụ: Lấy lịch sử chat (đặc thù)
   async getHistory(roomId) {
-    // Backend yêu cầu header đặc biệt này (giữ nguyên logic cũ)
-    const token = localStorage.getItem('accessToken');
-    
     return await this.$axios.$get(`${this.resource}/history`, {
-      params: { roomId },
-      headers: {
-        'accessToken': token, // Backend cần cái này
-        'roomId': roomId      // Backend cần cái này
-      }
+      params: { roomId }
     });
   }
 

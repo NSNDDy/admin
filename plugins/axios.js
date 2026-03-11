@@ -3,7 +3,7 @@ export default function ({ $axios, redirect }) {
     if (process.client) {
       const token = localStorage.getItem('accessToken');
       if (token) {
-        config.headers.common['Authorization'] = `Bearer ${token}`;
+        config.headers.common['accessToken'] = token;
       }
     }
     console.log('Making request to ' + config.url);

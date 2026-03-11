@@ -19,7 +19,7 @@
                     :class="['message', isMyMessage(message) ? 'own' : 'other']">
                     <div class="message-info">
                         <span class="username">{{ message.sender.username }}</span>
-                        <span class="time">{{ formatTime(message.timestamp) }}</span>
+                        <span class="time">{{ formatTime(message.timestamp || message.createdAt) }}</span>
                     </div>
                     <div class="message-content">
                         {{ message.content }}
@@ -29,7 +29,7 @@
 
             <div class="chat-input-area">
                 <div class="input-wrapper">
-                    <input v-model="newMessage" @keyup.enter="sendMessage" @keydown.enter.prevent="sendMessage"
+                    <input v-model="newMessage" @keydown.enter.prevent="sendMessage"
                         type="text" class="chat-input" placeholder="Nhập tin nhắn..." :disabled="!isConnected">
                     <button @click="sendMessage" class="btn-send" :disabled="!isConnected || !newMessage.trim()">
                         Gửi
@@ -93,15 +93,9 @@ export default {
             // Determine Socket URL dynamically
             let socketUrl = process.env.SOCKET_URL;
             if (!socketUrl) {
-                const browserApiUrl = process.env.BROWSER_API_URL || process.env.API_URL;
-                const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-                if (browserApiUrl) {
-                    socketUrl = browserApiUrl;
-                } else if (isLocalhost) {
-                    socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`;
-                } else {
-                    socketUrl = window.location.origin;
-                }
+                // Always use the hostname of the current page, but force port 3001 for the backend
+                // This works for localhost, 192.168.x.x, and other direct IP access
+                socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`;
             }
             console.log('Connecting to Socket.IO at:', socketUrl);
 
@@ -110,18 +104,17 @@ export default {
                 transports: ['websocket', 'polling'],
                 path: '/socket.io',
                 reconnection: true,
-                reconnectionAttempts: 5,
+                reconnectionAttempts: 10,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
-                auth: { token }, // Socket.IO v4 authentication
-                query: { token } // Backward compatibility
+                query: { token }
             });
 
             this.socket.on('connect', () => {
                 this.isConnected = true;
                 console.log('Connected to chat server');
 
-                // Join Room
+                // Join Room (cả lần đầu và reconnect)
                 this.socket.emit('join_room', {
                     roomId: this.roomId
                 });
@@ -129,9 +122,13 @@ export default {
                 this.fetchChatHistory();
             });
 
-            this.socket.on('disconnect', () => {
+            this.socket.on('reconnect', () => {
+                console.log('Reconnected - re-joining room');
+            });
+
+            this.socket.on('disconnect', (reason) => {
                 this.isConnected = false;
-                console.log('Disconnected from server');
+                console.log('Disconnected from server:', reason);
             });
 
             this.socket.on('connect_error', (err) => {
@@ -139,7 +136,9 @@ export default {
                 this.isConnected = false;
                 if (err.message === "Authentication error") {
                     alert("Phiên đăng nhập hết hạn.");
-                    this.logout();
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('user');
+                    this.$router.push('/login');
                 }
             });
 
@@ -172,8 +171,9 @@ export default {
             return this.currentUser && message.sender.id === this.currentUser.id;
         },
         formatTime(timestamp) {
-            if (!timestamp) return '';
-            return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const value = timestamp || null;
+            if (!value) return '';
+            return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         },
         scrollToBottom() {
             this.$nextTick(() => {
