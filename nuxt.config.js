@@ -40,7 +40,9 @@ export default {
   ** Environment variables
   */
   env: {
-    SOCKET_URL: process.env.SOCKET_URL
+    SOCKET_URL: process.env.SOCKET_URL,
+    API_URL: process.env.API_URL,
+    BROWSER_API_URL: process.env.BROWSER_API_URL
   },
   /*
   ** Customize the progress-bar color

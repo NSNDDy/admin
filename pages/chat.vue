@@ -93,8 +93,12 @@ export default {
             // Determine Socket URL dynamically
             let socketUrl = process.env.SOCKET_URL;
             if (!socketUrl) {
-                if (window.location.hostname === 'localhost') {
-                    socketUrl = 'http://localhost:3001';
+                const browserApiUrl = process.env.BROWSER_API_URL || process.env.API_URL;
+                const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                if (browserApiUrl) {
+                    socketUrl = browserApiUrl;
+                } else if (isLocalhost) {
+                    socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`;
                 } else {
                     socketUrl = window.location.origin;
                 }
