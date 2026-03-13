@@ -6,7 +6,7 @@
 
 export default {
   mounted(){
-    this.$router.replace('/login')
+    this.$router.replace('/portfolio')
   },
   components: {
     // Header
