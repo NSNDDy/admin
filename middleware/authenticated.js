@@ -6,7 +6,35 @@ export default function ({ store, redirect, route }) {
   const expiry = localStorage.getItem('tokenExpiry')
   const now = new Date().getTime()
 
+  const decodeJwtPayload = (raw) => {
+    if (!raw) return null
+    const parts = String(raw).split('.')
+    if (parts.length < 2) return null
+    const base64Url = parts[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+    try {
+      return JSON.parse(atob(padded))
+    } catch (e) {
+      return null
+    }
+  }
+
+  const jwtExpiryMs = (() => {
+    const payload = decodeJwtPayload(token)
+    if (!payload) return null
+    if (typeof payload.exp !== 'number') return null
+    return payload.exp * 1000
+  })()
+
   // Kiểm tra nếu token đã hết hạn
+  if (token && jwtExpiryMs && now >= jwtExpiryMs) {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('user')
+    localStorage.removeItem('tokenExpiry')
+    return redirect('/login')
+  }
+
   if (token && expiry && now > parseInt(expiry)) {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('user')

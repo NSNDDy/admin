@@ -1,9 +1,62 @@
 export default function ({ $axios, redirect }) {
+  const decodeJwtPayload = (token) => {
+    if (!token) return null
+    const parts = String(token).split('.')
+    if (parts.length < 2) return null
+
+    const base64Url = parts[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+
+    try {
+      return JSON.parse(atob(padded))
+    } catch (e) {
+      return null
+    }
+  }
+
+  const getJwtExpiryMs = (token) => {
+    const payload = decodeJwtPayload(token)
+    if (!payload) return null
+    if (typeof payload.exp !== 'number') return null
+    return payload.exp * 1000
+  }
+
+  const clearAuthStorage = () => {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('user')
+    localStorage.removeItem('tokenExpiry')
+  }
+
+  const isTokenExpired = (token) => {
+    const jwtExpiryMs = getJwtExpiryMs(token)
+    if (jwtExpiryMs) return Date.now() >= jwtExpiryMs
+
+    const expiry = localStorage.getItem('tokenExpiry')
+    if (!expiry) return false
+    const expiryMs = parseInt(expiry)
+    if (Number.isNaN(expiryMs)) return false
+    return Date.now() >= expiryMs
+  }
+
+  if (process.client) {
+    const token = localStorage.getItem('accessToken')
+    if (token && isTokenExpired(token)) {
+      clearAuthStorage()
+    }
+  }
+
   $axios.onRequest(config => {
     if (process.client) {
       const token = localStorage.getItem('accessToken');
-      if (token) {
-        config.headers.common['accessToken'] = token;
+      if (token && isTokenExpired(token)) {
+        clearAuthStorage()
+      } else if (token) {
+        const url = (config && config.url) ? String(config.url) : ''
+        const isAuthEndpoint = url.includes('/api/auth/login') || url.includes('/api/auth/register')
+        if (!isAuthEndpoint) {
+          config.headers.common['accessToken'] = token;
+        }
       }
     }
     console.log('Making request to ' + config.url);

@@ -47,7 +47,6 @@
           <button class="btn-account dropdown-toggle" @click="toggleAccountMenu">
             <i class="bi bi-person-circle"></i>
             <span class="account-name">{{ userName }}</span>
-            <i class="bi bi-chevron-down"></i>
           </button>
           <ul class="dropdown-menu" :class="{ show: showAccountMenu }">
             <li><a href="#" @click.prevent="goToProfile"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>

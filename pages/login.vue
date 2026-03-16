@@ -142,11 +142,26 @@ export default {
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('user', JSON.stringify(user));
 
-          // Xử lý thời gian hết hạn (Expiration)
-          // Nếu Remember Me: 7 ngày, Ngược lại: 1 ngày (24h)
-          const days = this.form.remember ? 7 : 1;
-          const expiryTime = new Date().getTime() + days * 24 * 60 * 60 * 1000;
-          localStorage.setItem('tokenExpiry', expiryTime);
+          const decodeJwtPayload = (raw) => {
+            if (!raw) return null
+            const parts = String(raw).split('.')
+            if (parts.length < 2) return null
+            const base64Url = parts[1]
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+            const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+            try {
+              return JSON.parse(atob(padded))
+            } catch (e) {
+              return null
+            }
+          }
+
+          const payload = decodeJwtPayload(accessToken)
+          const jwtExpiryMs = (payload && typeof payload.exp === 'number') ? payload.exp * 1000 : null
+          const days = this.form.remember ? 7 : 1
+          const clientExpiryMs = new Date().getTime() + days * 24 * 60 * 60 * 1000
+          const finalExpiryMs = jwtExpiryMs ? Math.min(jwtExpiryMs, clientExpiryMs) : clientExpiryMs
+          localStorage.setItem('tokenExpiry', String(finalExpiryMs));
           
           // Redirect vào trang Dashboard
           this.$router.push("/dashboard");

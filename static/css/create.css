@@ -4,6 +4,7 @@
     position: relative;
     overflow: hidden;
     font-family: 'Poppins', sans-serif;
+    background: #0b0b12;
 }
 
 .background-image {
@@ -13,6 +14,9 @@
     top: 0;
     left: 0;
     z-index: -1;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.85) brightness(0.7) contrast(1.05);
 }
 
 .gradient-overlay{
@@ -21,8 +25,11 @@
     position: absolute;
     left: 0;
     top: 0;
-    opacity: 0.76;
-    background: linear-gradient(180deg,#2AA8E3 2%, #1855ce 100%);
+    opacity: 0.92;
+    background:
+      radial-gradient(900px 500px at 20% 15%, rgba(167, 139, 250, 0.35), rgba(167, 139, 250, 0) 55%),
+      radial-gradient(900px 500px at 85% 20%, rgba(96, 165, 250, 0.25), rgba(96, 165, 250, 0) 60%),
+      linear-gradient(180deg, rgba(11, 11, 18, 0.7) 0%, rgba(11, 11, 18, 0.95) 55%, rgba(11, 11, 18, 0.98) 100%);
 }
 
 .register-container{
@@ -32,12 +39,14 @@
     transform: translate(-50%, -50%);
     z-index: 10;
     width: 400px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
+    background: rgba(15, 15, 23, 0.55);
+    backdrop-filter: blur(18px) saturate(1.25);
     border-radius: 25px;
     padding:40px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(167, 139, 250, 0.35);
+    box-shadow:
+      0 28px 60px rgba(0, 0, 0, 0.55),
+      0 0 26px rgba(167, 139, 250, 0.18);
 
 }
 
@@ -70,24 +79,25 @@
 .input{
     width: 100%;
     padding: 15px 50px 15px 20px;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.06);
     font-family: 'Poppins', sans-serif;
     font-size: 14px;
     font-weight: 400;
-    color: #333;
+    color: rgba(255, 255, 255, 0.95);
     outline: none;
     transition: all 0.3s ease;
 }
 .input::placeholder{
-    color: #666;
+    color: rgba(255, 255, 255, 0.55);
     font-weight: 300;
 }
 
 .input:focus{
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 0 20px rgba(42, 168, 227, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(167, 139, 250, 0.75);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2), 0 0 26px rgba(167, 139, 250, 0.22);
     transform: translateY(-2px);
 }
 
@@ -96,7 +106,7 @@
     right: 15px;
     top: 50%;
     transform: translateY(-50%);
-    color: #2AA8E3;
+    color: rgba(167, 139, 250, 0.95);
     font-size: 16px;
 }
 
@@ -117,16 +127,16 @@
 
 .remember-me input[type="checkbox"]{
     margin-right: 8px;
-    accent-color: #2AA8E3;
+    accent-color: #a78bfa;
 }
 
 .register-btn{
     width: 100%;
     padding: 15px;
-    background: linear-gradient(135deg, #2AA8E3 0%, #1855ce 100%);
+    background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
     border: none;
     border-radius: 12px;
-    color: white;
+    color: #0b0b12;
     font-family: 'Poppins', sans-serif;
     font-size: 16px;
     font-weight: 600;
@@ -135,12 +145,12 @@
     margin-bottom: 25px;
 }
 
-.login-btn:hover:not(:disabled){
+.register-btn:hover:not(:disabled){
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(42, 168, 227, 0.3);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35), 0 0 18px rgba(167, 139, 250, 0.35);
 }
 
-.login-btn:disabled {
+.register-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
 }
@@ -158,12 +168,12 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.14);
 }
 
 .divider span {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background: rgba(15, 15, 23, 0.55);
+    backdrop-filter: blur(12px) saturate(1.2);
     padding: 0 15px;
     color: rgba(255, 255, 255, 0.8);
     font-size: 14px;
@@ -181,13 +191,13 @@
 }
 
 .sign-link a {
-    color: #2AA8E3;
+    color: rgba(167, 139, 250, 0.95);
     text-decoration: none;
     font-weight: 600;
     transition: color 0.3s ease;
 }
 
 .sign-link a:hover {
-    color: #1855ce;
+    color: rgba(96, 165, 250, 1);
 }
 

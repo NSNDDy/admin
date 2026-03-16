@@ -74,8 +74,7 @@ export default {
 .toggle-icon span {
     width: 25px;
     height: 3px;
-    background: #2c3e50; 
-    background: #333;
+    background: rgba(255, 255, 255, 0.85);
     border-radius: 2px;
     transition: all 0.3s ease;
 }
@@ -102,12 +101,13 @@ export default {
     top: 90px;
     width: 250px;
     height: calc(100vh - 60px);
-    background: #2c3e50;
+    background: rgba(15, 15, 23, 0.92);
+    backdrop-filter: blur(14px) saturate(1.15);
     color: white;
     padding: 20px 0;
     overflow-y: auto;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 0 24px rgba(0, 0, 0, 0.35);
     z-index: 998;
     transform: translateX(-100%);
 }
@@ -121,7 +121,7 @@ export default {
     justify-content: space-between;
     align-items: center;
     padding: 0 20px 20px;
-    border-bottom: 1px solid #34495e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .sidebar-header h2 {
@@ -159,8 +159,8 @@ export default {
 }
 
 .sidebar-menu a:hover {
-    background: #34495e;
-    border-left-color: #007bff;
+    background: rgba(255, 255, 255, 0.06);
+    border-left-color: var(--accent-color);
     padding-left: 25px;
 }
 
