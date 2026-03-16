@@ -206,9 +206,9 @@ export default {
             timer: null,
             contactEmail: 'duyahihi@gmail.com',
             social: {
-                github: 'https://github.com/ibiimemon',
-                instagram: 'https://instagram.com/',
-                linkedin: 'https://www.linkedin.com/',
+                github: '',
+                instagram: '',
+                linkedin: '',
             },
             experienceCards: [
                 {
@@ -247,7 +247,7 @@ export default {
                     description:
                         'A sleek, dark-themed AI-powered landing page concept built in Figma. Designed for modern startups and futuristic digital products, it features glowing neon visuals, immersive UI, and a dynamic tone. The layout emphasizes clarity, hierarchy, and storytelling, while the visuals hint at next‑gen technology. The design encapsulates the cutting-edge possibilities of AI and tech, offering a glimpse into the future of online experiences for tech-forward companies.',
                     image: '/figma-portfolio/projects/project-1.png',
-                    href: 'https://ibiimemon.com',
+                    href: '',
                 },
                 {
                     id: 'vision-pro',
@@ -255,7 +255,7 @@ export default {
                     description:
                         'A futuristic HR software concept designed for Apple Vision Pro, built in Figma to reimagine attendance, leave tracking, and employee experience — all in one immersive interface. This concept explores spatial UI patterns, quick-glance metrics, and streamlined actions to reduce friction for both employees and HR teams. The focus is on readability, comfort, and an experience that feels native to mixed reality.',
                     image: '/figma-portfolio/projects/project-2.png',
-                    href: 'https://ibiimemon.com',
+                    href: '',
                 },
             ],
         }
