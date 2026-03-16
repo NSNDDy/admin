@@ -124,7 +124,7 @@
                 </div>
             </section>
 
-            <section id="projects" class="py-5">
+            <section id="projects" class="py-4">
                 <div class="container">
                     <div v-for="(project, index) in featuredProjects" :key="project.id" class="fp-featured-item"
                         :class="index % 2 === 1 ? 'fp-featured-right' : 'fp-featured-left'">
