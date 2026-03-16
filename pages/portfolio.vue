@@ -4,7 +4,7 @@
             <header class="fp-header fixed-top">
                 <div class="container d-flex align-items-center justify-content-between" style="height: 64px">
                     <div class="d-flex align-items-center" style="gap: 12px">
-                        <img :src="base + '/logo/logo.svg'" alt="Logo"
+                        <img :src="base + '/logo/logo3.svg'" alt="Logo"
                             style="width: 125px; height: 80px; object-fit: contain" />
                     </div>
                     <nav class="fp-nav d-none d-md-flex align-items-center" style="gap: 24px">
