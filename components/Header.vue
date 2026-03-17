@@ -43,7 +43,7 @@
     </div>
     <!-- Account Menu -->
       <div class="account-menu">
-        <div class="dropdown">
+        <div class="dropdown" ref="accountDropdown">
           <button class="btn-account dropdown-toggle" @click="toggleAccountMenu">
             <i class="bi bi-person-circle"></i>
             <span class="account-name">{{ userName }}</span>
@@ -73,8 +73,40 @@ export default {
     },
     mounted() {
       this.checkLoginStatus();
+      this.bindAccountMenuHandlers();
+    },
+    beforeDestroy() {
+      this.unbindAccountMenuHandlers();
+    },
+    watch: {
+      $route() {
+        this.closeAccountMenu();
+      }
     },
     methods: {
+      bindAccountMenuHandlers() {
+        if (process.server) return;
+        document.addEventListener('click', this.onDocumentClick, true);
+        document.addEventListener('keydown', this.onDocumentKeydown, true);
+      },
+      unbindAccountMenuHandlers() {
+        if (process.server) return;
+        document.removeEventListener('click', this.onDocumentClick, true);
+        document.removeEventListener('keydown', this.onDocumentKeydown, true);
+      },
+      onDocumentClick(event) {
+        if (!this.showAccountMenu) return;
+        const dropdownEl = this.$refs.accountDropdown;
+        if (!dropdownEl) return;
+        const target = event.target;
+        if (target && dropdownEl.contains(target)) return;
+        this.closeAccountMenu();
+      },
+      onDocumentKeydown(event) {
+        if (!this.showAccountMenu) return;
+        if (event.key !== 'Escape') return;
+        this.closeAccountMenu();
+      },
       checkLoginStatus() {
         if (process.server) return; // Chỉ chạy ở client side
 
