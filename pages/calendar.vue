@@ -199,64 +199,108 @@ export default {
       const nextDay = Math.min(currentDay, maxDay)
       this.selectDay(monthIndex, nextDay, y)
     },
-    selectDay(monthIndex, day) {
+    async selectDay(monthIndex, day) {
       this.selectedMonthIndex = monthIndex
       this.selectedDateIso = this.isoForDay(monthIndex, day)
+      await this.fetchTodosForDate(this.selectedDateIso)
     },
-    loadTodos() {
+    async loadTodos() {
+      await this.fetchTodosForDate(this.selectedDateIso)
+    },
+    async fetchTodosForDate(dateIso) {
       try {
-        const userStr = localStorage.getItem('user')
-        if (userStr) {
-          const user = JSON.parse(userStr)
-          const userKey = user?.id || user?.username || 'anonymous'
-          this.storageKey = `calendar_todos_v1:${userKey}`
+        const res = await this.$axios.$get('/api/todos', { params: { date: dateIso } })
+        const list = (res && res.data) ? res.data : []
+        this.$set(this.todosByDate, dateIso, list.map(it => ({
+          id: it.id,
+          text: it.text,
+          project: it.project || '',
+          priority: it.priority || 'medium',
+          done: !!it.done,
+          createdAt: it.createdAt
+        })))
+      } catch (e) {
+        try {
+          const raw = localStorage.getItem(this.storageKey)
+          this.todosByDate = raw ? JSON.parse(raw) : {}
+        } catch (err) {
+          this.todosByDate = {}
         }
-      } catch (e) {
-      }
-
-      try {
-        const raw = localStorage.getItem(this.storageKey)
-        this.todosByDate = raw ? JSON.parse(raw) : {}
-      } catch (e) {
-        this.todosByDate = {}
       }
     },
-    saveTodos() {
+    saveLocalCache() {
       try {
         localStorage.setItem(this.storageKey, JSON.stringify(this.todosByDate))
-      } catch (e) {
-      }
+      } catch (e) {}
     },
-    addTodo() {
+    async addTodo() {
       const text = this.newTodoText.trim()
       if (!text) return
 
-      const item = {
-        id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-        text,
-        project: this.newTodoProject.trim(),
-        priority: this.newTodoPriority,
-        done: false,
-        createdAt: Date.now()
+      try {
+        const payload = {
+          date: this.selectedDateIso,
+          text,
+          project: this.newTodoProject.trim(),
+          priority: this.newTodoPriority
+        }
+        const res = await this.$axios.$post('/api/todos', payload)
+        const saved = (res && res.data) ? res.data : null
+        if (saved) {
+          const next = [...this.selectedTodos, {
+            id: saved.id,
+            text: saved.text,
+            project: saved.project || '',
+            priority: saved.priority || 'medium',
+            done: !!saved.done,
+            createdAt: saved.createdAt
+          }]
+          this.$set(this.todosByDate, this.selectedDateIso, next)
+          this.saveLocalCache()
+        }
+      } catch (e) {
+        const item = {
+          id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
+          text,
+          project: this.newTodoProject.trim(),
+          priority: this.newTodoPriority,
+          done: false,
+          createdAt: Date.now()
+        }
+        const next = [...this.selectedTodos, item]
+        this.$set(this.todosByDate, this.selectedDateIso, next)
+        this.saveLocalCache()
       }
-
-      const next = [...this.selectedTodos, item]
-      this.$set(this.todosByDate, this.selectedDateIso, next)
-      this.saveTodos()
 
       this.newTodoText = ''
       this.newTodoProject = ''
       this.newTodoPriority = 'medium'
     },
-    toggleTodo(id) {
-      const next = this.selectedTodos.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
-      this.$set(this.todosByDate, this.selectedDateIso, next)
-      this.saveTodos()
+    async toggleTodo(id) {
+      const current = this.selectedTodos.find(t => t.id === id)
+      const nextDone = current ? !current.done : true
+      try {
+        await this.$axios.$put(`/api/todos/${id}`, { done: nextDone })
+        const next = this.selectedTodos.map((t) => (t.id === id ? { ...t, done: nextDone } : t))
+        this.$set(this.todosByDate, this.selectedDateIso, next)
+        this.saveLocalCache()
+      } catch (e) {
+        const next = this.selectedTodos.map((t) => (t.id === id ? { ...t, done: nextDone } : t))
+        this.$set(this.todosByDate, this.selectedDateIso, next)
+        this.saveLocalCache()
+      }
     },
-    removeTodo(id) {
-      const next = this.selectedTodos.filter((t) => t.id !== id)
-      this.$set(this.todosByDate, this.selectedDateIso, next)
-      this.saveTodos()
+    async removeTodo(id) {
+      try {
+        await this.$axios.$delete(`/api/todos/${id}`)
+        const next = this.selectedTodos.filter((t) => t.id !== id)
+        this.$set(this.todosByDate, this.selectedDateIso, next)
+        this.saveLocalCache()
+      } catch (e) {
+        const next = this.selectedTodos.filter((t) => t.id !== id)
+        this.$set(this.todosByDate, this.selectedDateIso, next)
+        this.saveLocalCache()
+      }
     },
     priorityLabel(p) {
       if (p === 'high') return 'Cao'
