@@ -199,26 +199,33 @@ export default {
       const nextDay = Math.min(currentDay, maxDay)
       this.selectDay(monthIndex, nextDay, y)
     },
-    async selectDay(monthIndex, day) {
+    selectDay(monthIndex, day) {
       this.selectedMonthIndex = monthIndex
       this.selectedDateIso = this.isoForDay(monthIndex, day)
-      await this.fetchTodosForDate(this.selectedDateIso)
     },
     async loadTodos() {
-      await this.fetchTodosForDate(this.selectedDateIso)
+      await this.getAll()
     },
-    async fetchTodosForDate(dateIso) {
+    async getAll() {
       try {
-        const res = await this.$axios.$get('/api/todos', { params: { date: dateIso } })
+        const res = await this.$axios.$get('/api/todos/all')
         const list = (res && res.data) ? res.data : []
-        this.$set(this.todosByDate, dateIso, list.map(it => ({
-          id: it.id,
-          text: it.text,
-          project: it.project || '',
-          priority: it.priority || 'medium',
-          done: !!it.done,
-          createdAt: it.createdAt
-        })))
+        const grouped = {}
+        for (const it of list) {
+          const dateIso = it && it.date ? String(it.date) : null
+          if (!dateIso) continue
+          if (!grouped[dateIso]) grouped[dateIso] = []
+          grouped[dateIso].push({
+            id: it.id,
+            text: it.text,
+            project: it.project || '',
+            priority: it.priority || 'medium',
+            done: !!it.done,
+            createdAt: it.createdAt
+          })
+        }
+        this.todosByDate = grouped
+        this.saveLocalCache()
       } catch (e) {
         try {
           const raw = localStorage.getItem(this.storageKey)
