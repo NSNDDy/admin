@@ -45,97 +45,6 @@
         </div>
       </section>
     </div>
-
-    <transition name="month-view">
-      <div v-if="isMonthView" class="month-view">
-        <div class="mv-watermark">
-          <span>{{ selectedWeekday }}</span>
-          <span>{{ monthNames[monthViewMonthIndex] }}</span>
-          <span>{{ monthNames[monthViewMonthIndex] }}</span>
-          <span>{{ monthNames[monthViewMonthIndex] }}</span>
-        </div>
-        <button style="margin-left: 20px;" class="mv-back" type="button" @click="closeMonth">← Back</button>
-
-        <div class="month-view-layout">
-          <div class="mv-left">
-            <div class="mv-top-area">
-              <section class="glass-card mv-date-card">
-                <div class="mv-date-top">
-                  <div class="mv-date-month">{{ monthNames[monthViewMonthIndex] }}</div>
-                  <div class="mv-date-year">{{ year }}</div>
-                </div>
-                <div class="mv-date-day">{{ selectedDayNumber }}</div>
-                <div class="mv-date-weekday">{{ selectedWeekday }}</div>
-              </section>
-
-              <section class="glass-card mv-calendar-card">
-                <div class="mv-dow-row">
-                  <div v-for="d in weekDayLabels" :key="'mv-' + d" class="mv-dow-cell">{{ d }}</div>
-                </div>
-                <div class="mv-days-grid">
-                  <div v-for="n in monthLeadingBlanks(monthViewMonthIndex)" :key="'mv-b-' + n" class="mv-day blank"></div>
-                  <button
-                    v-for="day in daysInMonth(monthViewMonthIndex)"
-                    :key="'mv-d-' + day"
-                    class="mv-day mv-day-btn"
-                    :class="dayClass(monthViewMonthIndex, day)"
-                    @click="selectDay(monthViewMonthIndex, day)"
-                    type="button"
-                  >
-                    {{ day }}
-                  </button>
-                </div>
-              </section>
-            </div>
-
-            <section class="glass-card mv-clock-card">
-              <div class="mv-clock-head">Clock  ⏱</div>
-              <div class="mv-clock-main">
-                <span class="mv-clock-time">{{ clockTimeHms }}</span>
-                <span class="mv-clock-meridiem">{{ clockMeridiem }}</span>
-              </div>
-            </section>
-          </div>
-          <aside class="mv-right">
-            <div class="glass-card mv-input-card">
-              <form class="mv-todo-form" @submit.prevent="addTodo">
-                <input
-                  v-model="newTodoText"
-                  class="mv-input"
-                  type="text"
-                  placeholder="Write here anythings"
-                  autocomplete="off"
-                />
-                <button class="mv-add" type="submit" :disabled="!newTodoText.trim()">Add to list  ▸</button>
-              </form>
-            </div>
-
-            <div class="glass-card mv-todo-card">
-              <div class="mv-todo-head">
-                <div class="mv-todo-title">Todo List</div>
-                <div class="mv-todo-icon">📋</div>
-              </div>
-
-              <div v-if="selectedTodos.length === 0" class="empty-state">
-                Chưa có công việc nào.
-              </div>
-
-              <div v-else class="todo-list">
-                <div
-                  v-for="item in selectedTodos"
-                  :key="item.id"
-                  class="todo-item"
-                  :class="{ done: item.done }"
-                >
-                  <div class="todo-text">{{ item.text }}</div>
-                  <input class="todo-check" type="checkbox" :checked="item.done" @change="toggleTodo(item.id)" />
-                </div>
-              </div>
-            </div>
-          </aside>
-        </div>
-      </div>
-    </transition>
   </div>
 </template>
 
@@ -168,69 +77,17 @@ export default {
       todayIso,
       selectedDateIso: todayIso,
       selectedMonthIndex: now.getMonth(),
-      newTodoText: '',
-      newTodoProject: '',
-      newTodoPriority: 'medium',
       todosByDate: {},
-      storageKey: 'calendar_todos_v1',
-      isMonthView: false,
-      monthViewMonthIndex: now.getMonth(),
-      statusFilter: 'open',
-      clockNow: now,
-      clockTimer: null
+      storageKey: 'calendar_todos_v1'
     }
   },
   computed: {
     selectedTodos() {
       return this.todosByDate[this.selectedDateIso] || []
-    },
-    filteredSelectedTodos() {
-      const status = this.statusFilter || 'open'
-      return this.selectedTodos.filter((t) => (t.status || 'open') === status)
-    },
-    selectedDateLabel() {
-      const [y, m, d] = this.selectedDateIso.split('-')
-      return `${d}/${m}/${y}`
-    },
-    selectedDayNumber() {
-      const parts = this.selectedDateIso.split('-')
-      return parts.length === 3 ? parts[2] : ''
-    },
-    selectedWeekday() {
-      const parts = this.selectedDateIso.split('-').map((n) => parseInt(n, 10))
-      if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return ''
-      const dt = new Date(parts[0], parts[1] - 1, parts[2])
-      const labels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-      return labels[dt.getDay()] || ''
-    },
-    clockTime() {
-      const dt = this.clockNow instanceof Date ? this.clockNow : new Date()
-      let h = dt.getHours()
-      const m = String(dt.getMinutes()).padStart(2, '0')
-      const s = String(dt.getSeconds()).padStart(2, '0')
-      h = h % 12
-      if (h === 0) h = 12
-      return `${String(h).padStart(2, '0')}:${m}:${s}`
-    },
-    clockTimeHms() {
-      return this.clockTime
-    },
-    clockTimeCs() {
-      const dt = this.clockNow instanceof Date ? this.clockNow : new Date()
-      const cs = Math.floor(dt.getMilliseconds() / 10)
-      return String(cs).padStart(2, '0')
-    },
-    clockMeridiem() {
-      const dt = this.clockNow instanceof Date ? this.clockNow : new Date()
-      return dt.getHours() >= 12 ? 'PM' : 'AM'
     }
   },
   mounted() {
     this.loadTodos()
-    this.startClock()
-  },
-  beforeDestroy() {
-    this.stopClock()
   },
   methods: {
     goToDashboard() {
@@ -238,33 +95,20 @@ export default {
     },
     openMonth(monthIndex) {
       this.selectedMonthIndex = monthIndex
-      this.monthViewMonthIndex = monthIndex
-      this.selectedDateIso = this.isoForDay(monthIndex, 1)
-      this.isMonthView = true
-      this.statusFilter = 'open'
+      this.navigateToMonthView(monthIndex, 1)
     },
     openMonthAndSelectDay(monthIndex, day) {
       this.selectedMonthIndex = monthIndex
-      this.monthViewMonthIndex = monthIndex
       this.selectedDateIso = this.isoForDay(monthIndex, day)
-      this.isMonthView = true
-      this.statusFilter = 'open'
+      this.navigateToMonthView(monthIndex, day)
     },
-    closeMonth() {
-      this.isMonthView = false
-    },
-    startClock() {
-      if (process.server) return
-      if (this.clockTimer) return
-      this.clockNow = new Date()
-      this.clockTimer = setInterval(() => {
-        this.clockNow = new Date()
-      }, 250)
-    },
-    stopClock() {
-      if (!this.clockTimer) return
-      clearInterval(this.clockTimer)
-      this.clockTimer = null
+    navigateToMonthView(monthIndex, day) {
+      const nextQuery = {
+        year: String(this.year),
+        month: String(monthIndex + 1),
+        day: String(day)
+      }
+      this.$router.push({ path: '/month', query: nextQuery })
     },
     pad2(n) {
       return String(n).padStart(2, '0')
@@ -296,17 +140,12 @@ export default {
         hasTodos: (this.todosByDate[iso] || []).length > 0
       }
     },
-    selectDay(monthIndex, day) {
-      this.selectedMonthIndex = monthIndex
-      this.monthViewMonthIndex = monthIndex
-      this.selectedDateIso = this.isoForDay(monthIndex, day)
-    },
     async loadTodos() {
       await this.getAll()
     },
     async getAll() {
       try {
-        const res = await this.$axios.$get('/api/todos/all')
+        const res = await this.$axios.$get('/api/todos')
         const list = (res && res.data) ? res.data : []
         const grouped = {}
         for (const it of list) {
@@ -338,109 +177,6 @@ export default {
       try {
         localStorage.setItem(this.storageKey, JSON.stringify(this.todosByDate))
       } catch (e) {}
-    },
-    async addTodo() {
-      const text = this.newTodoText.trim()
-      if (!text) return
-
-      try {
-        const payload = {
-          date: this.selectedDateIso,
-          text,
-          project: this.newTodoProject.trim(),
-          priority: this.newTodoPriority
-        }
-        const res = await this.$axios.$post('/api/todos', payload)
-        const saved = (res && res.data) ? res.data : null
-        if (saved) {
-          const next = [...this.selectedTodos, {
-            id: saved.id,
-            text: saved.text,
-            project: saved.project || '',
-            priority: saved.priority || 'medium',
-            status: saved.status || 'open',
-            done: !!saved.done,
-            createdAt: saved.createdAt
-          }]
-          this.$set(this.todosByDate, this.selectedDateIso, next)
-          this.saveLocalCache()
-        }
-      } catch (e) {
-        const item = {
-          id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-          text,
-          project: this.newTodoProject.trim(),
-          priority: this.newTodoPriority,
-          status: 'open',
-          done: false,
-          createdAt: Date.now()
-        }
-        const next = [...this.selectedTodos, item]
-        this.$set(this.todosByDate, this.selectedDateIso, next)
-        this.saveLocalCache()
-      }
-
-      this.newTodoText = ''
-      this.newTodoProject = ''
-      this.newTodoPriority = 'medium'
-    },
-    async toggleTodo(id) {
-      const current = this.selectedTodos.find(t => t.id === id)
-      const nextDone = current ? !current.done : true
-      try {
-        const nextStatus = nextDone ? 'done' : 'open'
-        await this.$axios.$put(`/api/todos/${id}`, { done: nextDone, status: nextStatus })
-        const next = this.selectedTodos.map((t) => (t.id === id ? { ...t, done: nextDone, status: nextStatus } : t))
-        this.$set(this.todosByDate, this.selectedDateIso, next)
-        this.saveLocalCache()
-      } catch (e) {
-        const nextStatus = nextDone ? 'done' : 'open'
-        const next = this.selectedTodos.map((t) => (t.id === id ? { ...t, done: nextDone, status: nextStatus } : t))
-        this.$set(this.todosByDate, this.selectedDateIso, next)
-        this.saveLocalCache()
-      }
-    },
-    statusLabel(status) {
-      const v = status || 'open'
-      if (v === 'progress') return 'Progress'
-      if (v === 'done') return 'Done'
-      if (v === 'close') return 'Close'
-      return 'Open'
-    },
-    async cycleTodoStatus(id) {
-      const current = this.selectedTodos.find(t => t.id === id)
-      const currentStatus = (current && current.status) ? current.status : 'open'
-      const order = ['open', 'progress', 'done', 'close']
-      const idx = order.indexOf(currentStatus)
-      const nextStatus = order[(idx + 1 + order.length) % order.length]
-      const nextDone = nextStatus === 'done'
-      try {
-        await this.$axios.$put(`/api/todos/${id}`, { status: nextStatus, done: nextDone })
-        const next = this.selectedTodos.map((t) => (t.id === id ? { ...t, status: nextStatus, done: nextDone } : t))
-        this.$set(this.todosByDate, this.selectedDateIso, next)
-        this.saveLocalCache()
-      } catch (e) {
-        const next = this.selectedTodos.map((t) => (t.id === id ? { ...t, status: nextStatus, done: nextDone } : t))
-        this.$set(this.todosByDate, this.selectedDateIso, next)
-        this.saveLocalCache()
-      }
-    },
-    async removeTodo(id) {
-      try {
-        await this.$axios.$delete(`/api/todos/${id}`)
-        const next = this.selectedTodos.filter((t) => t.id !== id)
-        this.$set(this.todosByDate, this.selectedDateIso, next)
-        this.saveLocalCache()
-      } catch (e) {
-        const next = this.selectedTodos.filter((t) => t.id !== id)
-        this.$set(this.todosByDate, this.selectedDateIso, next)
-        this.saveLocalCache()
-      }
-    },
-    priorityLabel(p) {
-      if (p === 'high') return 'Cao'
-      if (p === 'low') return 'Thấp'
-      return 'TB'
     }
   }
 }
