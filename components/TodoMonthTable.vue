@@ -7,31 +7,42 @@
       <table class="table">
         <thead>
           <tr>
-            <th class="col-id">Mã thứ tự</th>
+            <th class="col-id sortable" @click="toggleSort('id')">
+              ID
+              <i class="fa-solid sort-caret" :class="sortDir === 'asc' ? 'fa-sort-up' : 'fa-sort-down'"></i>
+            </th>
             <th class="col-text">Nội dung</th>
             <th class="col-project">Dự án</th>
             <th class="col-priority">Độ Ưu tiên</th>
             <th class="col-status">Trạng thái</th>
             <th class="col-created">Ngày tạo</th>
             <th class="col-updated">Ngày cập nhật</th>
+            <th class="col-actions"></th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="rows.length === 0">
-            <td class="empty" colspan="5">Không có công việc trong tháng này.</td>
+            <td class="empty" colspan="8">Không có công việc trong tháng này.</td>
           </tr>
-          <tr v-for="r in rows" :key="r.id">
+          <tr v-for="r in displayRows" :key="r.id">
             <td class="mono">{{ r.id }}</td>
             <td class="text">{{ r.text }}</td>
             <td class="project">{{ r.project }}</td>
-            <td>
-              <span class="pill" :class="'p-' + (r.priority || 'medium')">{{ r.priority || 'medium' }}</span>
-            </td>
-            <td>
-              <span class="pill" :class="'s-' + (r.status || 'open')">{{ r.status || 'open' }}</span>
-            </td>
+            <td><span class="pill" :class="'p-' + (r.priority || 'medium')">{{ r.priority || 'medium' }}</span></td>
+            <td><span class="pill" :class="'s-' + (r.status || 'open')">{{ r.status || 'open' }}</span></td>
             <td class="mono">{{ formatCreatedAt(r.createdAt) }}</td>
             <td class="mono">{{ formatCreatedAt(r.updatedAt) }}</td>
+            <td class="actions">
+              <div class="actions-row">
+                <button class="btn-icon" type="button" @click="$emit('edit', r)">
+                  <i class="fa-regular fa-pen-to-square"></i>
+                </button>
+                <button class="btn-icon danger" type="button" :disabled="deletingId === r.id" @click="deleteRow(r)">
+                  <i v-if="deletingId === r.id" class="fa-solid fa-spinner fa-spin"></i>
+                  <i v-else class="fa-regular fa-trash-can"></i>
+                </button>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -44,13 +55,19 @@ export default {
   name: 'TodoMonthTable',
   props: {
     year: { type: Number, required: true },
-    month: { type: Number, required: true }
+    month: { type: Number, required: true },
+    refreshKey: { type: [Number, String], default: 0 }
   },
   data() {
     return {
       loading: false,
       error: '',
-      rows: []
+      rows: [],
+      requestSeq: 0,
+      deletingId: null,
+      savingId: null,
+      sortBy: 'id',
+      sortDir: 'asc'
     }
   },
   computed: {
@@ -64,11 +81,23 @@ export default {
     },
     rangeLabel() {
       return `${this.range.start} → ${this.range.end}`
+    },
+    displayRows() {
+      const list = Array.isArray(this.rows) ? [...this.rows] : []
+      if (this.sortBy === 'id') {
+        list.sort((a, b) => {
+          const av = Number(a.id) || 0
+          const bv = Number(b.id) || 0
+          return this.sortDir === 'asc' ? av - bv : bv - av
+        })
+      }
+      return list
     }
   },
   watch: {
     year: 'fetchData',
-    month: 'fetchData'
+    month: 'fetchData',
+    refreshKey: 'fetchData'
   },
   mounted() {
     this.fetchData()
@@ -96,10 +125,14 @@ export default {
       return `${d}/${m}/${y}`
     },
     async fetchData() {
+      const reqId = ++this.requestSeq
       this.loading = true
       this.error = ''
+      this.rows = []
+      this.deletingId = null
       try {
         const res = await this.$axios.$get('/api/todos', { params: { from: this.range.start, to: this.range.end } })
+        if (reqId !== this.requestSeq) return
         this.rows = (res && res.data) ? res.data.map(it => ({
           id: it.id,
           text: it.text,
@@ -110,11 +143,34 @@ export default {
           updatedAt: it.updatedAt
         })) : []
       } catch (e) {
+        if (reqId !== this.requestSeq) return
         this.rows = []
         this.error = 'Không tải được dữ liệu.'
       } finally {
+        if (reqId !== this.requestSeq) return
         this.loading = false
       }
+    },
+    async deleteRow(row) {
+      if (!row || !row.id) return
+      const ok = window.confirm('Xoá công việc này?')
+      if (!ok) return
+      this.deletingId = row.id
+      this.error = ''
+      try {
+        await this.$axios.$delete(`/api/todos/${row.id}`)
+        this.$emit('changed')
+        if (this.editingId === row.id) this.cancelEdit()
+        await this.fetchData()
+      } catch (e) {
+        this.error = 'Không xoá được công việc.'
+      } finally {
+        this.deletingId = null
+      }
+    },
+    toggleSort(field) {
+      if (field !== 'id') return
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc'
     }
   }
 }
@@ -174,7 +230,7 @@ export default {
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 860px;
+  min-width: 980px;
   background: rgba(255, 255, 255, 0.18);
 }
 
@@ -190,6 +246,17 @@ thead th {
   top: 0;
   background: rgba(230, 232, 244, 0.65);
   backdrop-filter: blur(18px);
+}
+
+th.sortable {
+  user-select: none;
+  cursor: pointer;
+}
+
+.sort-caret {
+  margin-left: 6px;
+  font-size: 12px;
+  color: rgba(31, 45, 61, 0.55);
 }
 
 tbody td {
@@ -215,6 +282,61 @@ tbody tr:hover td {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.project {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  width: 120px;
+  white-space: nowrap;
+}
+
+.actions-row {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(31, 45, 61, 0.75);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.btn-icon:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(44, 38, 76, 0.10);
+}
+
+.btn-icon:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-icon.primary {
+  background: rgba(40, 167, 69, 0.12);
+  border-color: rgba(40, 167, 69, 0.22);
+  color: rgba(40, 167, 69, 0.95);
+}
+
+.btn-icon.danger {
+  background: rgba(220, 53, 69, 0.10);
+  border-color: rgba(220, 53, 69, 0.18);
+  color: rgba(220, 53, 69, 0.95);
 }
 
 .empty {
@@ -308,5 +430,9 @@ tbody tr:hover td {
 
 .col-created {
   width: 180px;
+}
+
+.col-actions {
+  width: 120px;
 }
 </style>

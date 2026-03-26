@@ -53,6 +53,10 @@
       <aside class="mv-right">
         <div class="glass-card mv-input-card">
           <form class="mv-todo-form" @submit.prevent="addTodo">
+            <div v-if="editingTodoId" class="mv-editing-banner">
+              <span>Đang sửa #{{ editingTodoId }}</span>
+              <button class="mv-cancel" type="button" @click="cancelEdit">Huỷ</button>
+            </div>
             <input
               v-model="newTodoText"
               class="mv-input"
@@ -71,37 +75,23 @@
               <GlassSelect v-model="newTodoPriority" :options="priorityOptions" placeholder="Priority" />
               <GlassSelect v-model="newTodoStatus" :options="statusOptions" placeholder="Status" />
             </div>
-            <button class="mv-add" type="submit" :disabled="!newTodoText.trim()">Thêm vào danh sách   ▸</button>
+            <button class="mv-add" type="submit" :disabled="!newTodoText.trim()">
+              {{ editingTodoId ? 'Cập nhật' : 'Thêm vào danh sách   ▸' }}
+            </button>
           </form>
         </div>
-
-        <div class="glass-card mv-todo-card">
-          <div class="mv-todo-head">
-            <div class="mv-todo-title">Todo List</div>
-            <div class="mv-todo-icon">📋</div>
-          </div>
-
-          <div v-if="selectedTodos.length === 0" class="empty-state">
-            Chưa có công việc nào.
-          </div>
-
-          <div v-else class="todo-list">
-            <div
-              v-for="item in selectedTodos"
-              :key="item.id"
-              class="todo-item"
-              :class="{ done: item.done }"
-            >
-              <div class="todo-text">{{ item.text }}</div>
-              <input class="todo-check" type="checkbox" :checked="item.done" @change="toggleTodo(item.id)" />
-            </div>
-          </div>
-        </div>
       </aside>
+      
     </div>
 
     <div class="mv-table-area">
-      <TodoMonthTable :year="year" :month="monthViewMonthIndex + 1" />
+      <TodoMonthTable
+        :year="year"
+        :month="monthViewMonthIndex + 1"
+        :refresh-key="tableRefreshKey"
+        @changed="handleTableChanged"
+        @edit="startEditFromTable"
+      />
     </div>
   </div>
 </template>
@@ -143,6 +133,7 @@ export default {
       newTodoProject: '',
       newTodoPriority: 'medium',
       newTodoStatus: 'open',
+      editingTodoId: null,
       priorityOptions: [
         { value: 'low', label: 'Low' },
         { value: 'medium', label: 'Medium' },
@@ -154,6 +145,7 @@ export default {
         { value: 'done', label: 'Done' },
         { value: 'close', label: 'Close' }
       ],
+      tableRefreshKey: 0,
       todosByDate: {},
       storageKey: 'calendar_todos_v1',
       clockNow: now,
@@ -320,43 +312,78 @@ export default {
     async addTodo() {
       const text = this.newTodoText.trim()
       if (!text) return
-      try {
-        const payload = {
-          date: this.selectedDateIso,
-          text,
-          project: this.newTodoProject.trim(),
-          priority: this.newTodoPriority,
-          status: this.newTodoStatus
-        }
-        const res = await this.$axios.$post('/api/todos', payload)
-        const saved = (res && res.data) ? res.data : null
-        if (saved) {
-          const next = [...this.selectedTodos, {
-            id: saved.id,
-            text: saved.text,
-            project: saved.project || '',
-            priority: saved.priority || 'medium',
-            status: saved.status || 'open',
-            done: !!saved.done,
-            createdAt: saved.createdAt
-          }]
+      if (this.editingTodoId) {
+        try {
+          const payload = {
+            text,
+            project: this.newTodoProject.trim(),
+            priority: this.newTodoPriority,
+            status: this.newTodoStatus
+          }
+          await this.$axios.$put(`/api/todos/${this.editingTodoId}`, payload)
+          this.tableRefreshKey = (this.tableRefreshKey || 0) + 1
+          await this.loadTodos()
+        } catch (e) {}
+      } else {
+        try {
+          const payload = {
+            date: this.selectedDateIso,
+            text,
+            project: this.newTodoProject.trim(),
+            priority: this.newTodoPriority,
+            status: this.newTodoStatus
+          }
+          const res = await this.$axios.$post('/api/todos', payload)
+          const saved = (res && res.data) ? res.data : null
+          if (saved) {
+            const next = [...this.selectedTodos, {
+              id: saved.id,
+              text: saved.text,
+              project: saved.project || '',
+              priority: saved.priority || 'medium',
+              status: saved.status || 'open',
+              done: !!saved.done,
+              createdAt: saved.createdAt
+            }]
+            this.$set(this.todosByDate, this.selectedDateIso, next)
+            this.saveLocalCache()
+            this.tableRefreshKey = (this.tableRefreshKey || 0) + 1
+          }
+        } catch (e) {
+          const item = {
+            id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
+            text,
+            project: this.newTodoProject.trim(),
+            priority: this.newTodoPriority,
+            status: this.newTodoStatus,
+            done: this.newTodoStatus === 'done',
+            createdAt: Date.now()
+          }
+          const next = [...this.selectedTodos, item]
           this.$set(this.todosByDate, this.selectedDateIso, next)
           this.saveLocalCache()
+          this.tableRefreshKey = (this.tableRefreshKey || 0) + 1
         }
-      } catch (e) {
-        const item = {
-          id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-          text,
-          project: this.newTodoProject.trim(),
-          priority: this.newTodoPriority,
-          status: this.newTodoStatus,
-          done: this.newTodoStatus === 'done',
-          createdAt: Date.now()
-        }
-        const next = [...this.selectedTodos, item]
-        this.$set(this.todosByDate, this.selectedDateIso, next)
-        this.saveLocalCache()
       }
+      this.newTodoText = ''
+      this.newTodoProject = ''
+      this.newTodoPriority = 'medium'
+      this.newTodoStatus = 'open'
+      this.editingTodoId = null
+    },
+    async handleTableChanged() {
+      this.tableRefreshKey = (this.tableRefreshKey || 0) + 1
+      await this.loadTodos()
+    },
+    startEditFromTable(row) {
+      this.editingTodoId = row.id
+      this.newTodoText = row.text || ''
+      this.newTodoProject = row.project || ''
+      this.newTodoPriority = row.priority || 'medium'
+      this.newTodoStatus = row.status || 'open'
+    },
+    cancelEdit() {
+      this.editingTodoId = null
       this.newTodoText = ''
       this.newTodoProject = ''
       this.newTodoPriority = 'medium'
@@ -484,8 +511,8 @@ export default {
 
 .mv-date-card {
   position: absolute;
-  top: 28px;
-  left: 95px;
+  top: 22px;
+  left: 82px;
   z-index: 2;
   width: 265px;
   padding: 18px;
@@ -679,6 +706,8 @@ export default {
   position: relative;
   z-index: 6;
   padding: 18px;
+  flex: 1;
+  display: flex;
 }
 
 .mv-todo-card {
@@ -746,6 +775,31 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1;
+}
+
+.mv-editing-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.50);
+  background: rgba(255, 255, 255, 0.22);
+  font-weight: 900;
+  color: rgba(31, 45, 61, 0.78);
+}
+
+.mv-cancel {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(108, 117, 125, 0.12);
+  color: rgba(70, 76, 82, 0.95);
+  font-weight: 800;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .mv-form-row {
@@ -782,6 +836,7 @@ export default {
   cursor: pointer;
   font-size: 13px;
   transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  margin-top: auto;
 }
 
 .mv-add:hover {
