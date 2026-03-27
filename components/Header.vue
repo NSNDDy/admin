@@ -1,10 +1,10 @@
 <template>
     <header id="header" class="header d-flex align-items-center sticky-top">
     <link rel="stylesheet" href="/css/header.css">
+
     <div class="container-fluid container-xl position-relative d-flex align-items-center">
 
       <nuxt-link to="/" class="logo d-flex align-items-center me-auto">
-        <!-- <img src="/logo.png" alt=""> -->
         <h1 class="sitename">Neyyud</h1>
       </nuxt-link>
 
@@ -68,7 +68,7 @@ export default {
       return {
         showAccountMenu: false,
         isLoggedIn: false,
-        userName: 'User'
+        userName: 'User',
       }
     },
     mounted() {
@@ -149,7 +149,7 @@ export default {
         this.isLoggedIn = false;
         this.userName = 'User';
         this.$router.push('/login');
-      }
+      },
     }
 }
 </script>
