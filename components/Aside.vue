@@ -10,7 +10,6 @@
         <aside class="dashboard-sidebar" :class="{ open: isOpen }">
             <div class="sidebar-header">
                 <h2>Menu</h2>
-                <button class="close-btn" @click="toggleSidebar">✕</button>
             </div>
             <ul class="sidebar-menu">
                 <li><a href="/dashboard" @click="closeSidebar">Dashboard</a></li>
