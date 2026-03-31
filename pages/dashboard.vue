@@ -38,6 +38,15 @@
                                 </button>
                             </div>
                         </div>
+                        <div class="col-12 col-md-6 col-lg-4 mb-4">
+                            <div class="card finance-card">
+                                <h3>💰 Quản lý Tài chính</h3>
+                                <p>Theo dõi thu nhập, chi tiêu và lập kế hoạch cho tương lai.</p>
+                                <button @click="goToFinance" class="btn-finance">
+                                    Vào Finance
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </main>
@@ -70,6 +79,9 @@ export default {
         },
         goToCalendar() {
             this.$router.push('/calendar')
+        },
+        goToFinance() {
+            this.$router.push('/finance')
         },
        async loadUser() {
             try {

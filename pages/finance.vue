@@ -1,7 +1,12 @@
 <template>
   <div class="finance-page">
     <div class="finance-header">
-      <h1><i class="fas fa-wallet mr-2"></i>Quản lý Tài chính cá nhân</h1>
+      <div class="d-flex align-items-center">
+        <button class="btn-back mr-3" @click="goBack" title="Quay lại Dashboard">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h1 class="m-0"><i class="fas fa-wallet mr-2"></i>Quản lý Tài chính cá nhân</h1>
+      </div>
       <div class="header-actions">
         <span class="badge badge-info p-2">{{ currentMonthName }}</span>
       </div>
@@ -264,6 +269,9 @@ export default {
     this.initChart();
   },
   methods: {
+    goBack() {
+      this.$router.push('/dashboard');
+    },
     async fetchData() {
       await Promise.all([
         this.fetchTransactions(),
