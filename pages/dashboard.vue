@@ -5,8 +5,8 @@
         <div class="dashboard-wrapper">
             <main class="dashboard-main">
                 <header class="dashboard-header">
-                    <h1>Welcome to Dashboard</h1>
-                    <p>This is your admin panel. Add features here!</p>
+                    <!-- <h1>Welcome to Dashboard</h1>
+                    <p>This is your admin panel. Add features here!</p> -->
                 </header>
                 <section class="dashboard-content">
                     <div class="row">

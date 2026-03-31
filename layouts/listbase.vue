@@ -76,11 +76,11 @@ export default {
 .app-body {
     flex: 1;
     padding-left: 250px;
-    transition: padding-left 0.3s ease;
+    transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app-body.sidebar-closed {
-    padding-left: 0;
+    padding-left: 70px;
 }
 
 @media (max-width: 768px) {

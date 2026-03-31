@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="simple-news-page">
     <h1>Tin tức đơn giản</h1>
     
     <!-- Hiển thị danh sách tin tức -->
@@ -37,28 +37,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.news-list {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.news-item {
-  border: 1px solid #ddd;
-  margin-bottom: 20px;
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.news-item h3 {
-  color: #333;
-  margin-bottom: 10px;
-}
-
-.news-item p {
-  color: #666;
-  line-height: 1.6;
-}
-</style> 

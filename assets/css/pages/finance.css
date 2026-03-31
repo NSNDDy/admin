@@ -1,0 +1,250 @@
+.finance-page {
+    padding: 22px;
+    color: #2c3e50; /* Darker text for better contrast on light background */
+    min-height: 100vh;
+    background: radial-gradient(1100px 700px at 15% 15%, rgba(186, 182, 210, 0.45), transparent 58%),
+                radial-gradient(900px 700px at 80% 15%, rgba(168, 172, 205, 0.35), transparent 62%),
+                radial-gradient(900px 700px at 50% 90%, rgba(176, 168, 200, 0.30), transparent 62%),
+                #c8c9d6;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+.finance-header h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: rgba(31, 45, 61, 0.8);
+    text-shadow: none;
+}
+
+/* Glass Card Style - Matching Month page style */
+.finance-page .glass-card {
+    background: rgba(220, 222, 235, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(44, 38, 76, 0.10);
+    backdrop-filter: blur(18px);
+    padding: 20px;
+}
+
+.finance-page .summary-card .label {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(31, 45, 61, 0.6);
+    margin-bottom: 5px;
+}
+
+.finance-page .summary-card .value {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.finance-page .transaction-table th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+    font-weight: 700;
+    color: rgba(31, 45, 61, 0.7);
+}
+
+.finance-page .transaction-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(31, 45, 61, 0.8);
+}
+
+.finance-page .transaction-table tr:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.finance-page .glass-input {
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: #2c3e50;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.finance-page .glass-input::placeholder {
+    color: rgba(31, 45, 61, 0.4);
+}
+
+.finance-page .glass-input:focus {
+    border-color: rgba(102, 126, 234, 0.5);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.finance-page h5 {
+    color: rgba(31, 45, 61, 0.8);
+    font-weight: 700;
+}
+
+.finance-page label {
+    color: rgba(31, 45, 61, 0.7);
+    font-weight: 600;
+}
+
+.type-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.type-badge.income { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+.type-badge.expense { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+
+/* Form Styles */
+.finance-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.glass-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: white;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.glass-input:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: transform 0.2s;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+}
+
+.btn-save:active {
+    transform: translateY(0);
+}
+
+.finance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.finance-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 20px;
+}
+
+/* Summary Section */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.summary-card.income .value { color: #4ade80; }
+.summary-card.expense .value { color: #f87171; }
+.summary-card.balance .value { color: #60a5fa; }
+
+/* Chart Section */
+.chart-container {
+    height: 300px;
+    margin-top: 10px;
+}
+
+/* Transaction List */
+.transaction-list {
+    margin-top: 20px;
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.type-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.type-badge.income { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+.type-badge.expense { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+
+/* Form Styles */
+.finance-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: transform 0.2s;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+}
+
+.btn-save:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 1024px) {
+    .finance-grid {
+        grid-template-columns: 1fr;
+    }
+}

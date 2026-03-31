@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="test-page">
     <!-- Checkbox -->
     <label>
       <input type="checkbox" v-model="useText1" />
@@ -50,11 +50,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-/* Tùy chọn: làm mờ khi disabled để nhìn rõ hơn */
-input:disabled {
-  opacity: 0.5;
-  background-color: #f0f0f0;
-}
-</style>

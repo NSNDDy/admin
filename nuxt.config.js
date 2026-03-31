@@ -39,9 +39,10 @@ export default {
       {
         src: '/js/main.js',
       },
-      
-
-      
+      // Chart.js CDN
+      {
+        src: 'https://cdn.jsdelivr.net/npm/chart.js',
+      },
     ]
   },
   /*
@@ -64,7 +65,7 @@ export default {
   ** Global CSS
   */
   css: [
-    '~/assets/css/portfolio.css'
+    '~/assets/css/pages.css'
   ],
   /*
   ** Plugins to load before mounting the App
