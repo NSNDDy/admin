@@ -118,3 +118,37 @@
 .btn-calendar:active {
     transform: translateY(0);
 }
+
+.finance-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.finance-card p {
+    margin: 0;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.btn-finance {
+    align-self: flex-start;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #4ade80 0%, #3b82f6 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.btn-finance:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(74, 222, 128, 0.4);
+}
+
+.btn-finance:active {
+    transform: translateY(0);
+}
