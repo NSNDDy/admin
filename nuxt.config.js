@@ -39,9 +39,10 @@ export default {
       {
         src: '/js/main.js',
       },
-      
-
-      
+      // Chart.js CDN
+      {
+        src: 'https://cdn.jsdelivr.net/npm/chart.js',
+      },
     ]
   },
   /*
