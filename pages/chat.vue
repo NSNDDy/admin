@@ -1,9 +1,11 @@
 <template>
     <div class="chat-page">
     <div class="chat-container">
-        <div class="chat-sidebar">
+        <!-- Sidebar: Danh sách người dùng -->
+        <div class="chat-sidebar" v-show="!isMobile || (isMobile && !showChatWindow)">
             <div class="sidebar-header">
                 <h3>Người dùng</h3>
+                <button v-if="isMobile" @click="goBack" class="btn-back-sidebar">← Dashboard</button>
             </div>
             <div class="user-list">
                 <div class="user-item" :class="{ active: roomId === 'general' }" @click="switchRoom('general')">
@@ -29,7 +31,9 @@
                 </div>
             </div>
         </div>
-        <div class="chat-wrapper">
+
+        <!-- Wrapper: Nội dung Chat -->
+        <div class="chat-wrapper" v-show="!isMobile || (isMobile && showChatWindow)">
             <div class="chat-header">
                 <div class="chat-header-title">
                     <h2>{{ chatTitle }}</h2>
@@ -42,7 +46,9 @@
                         </button>
                     </div>
                 </div>
-                <button @click="goBack" class="btn-back">← Quay lại</button>
+                <button @click="handleBack" class="btn-back">
+                    {{ isMobile ? '← Danh sách' : '← Quay lại' }}
+                </button>
             </div>
 
             <div class="chat-messages" ref="messagesContainer">
@@ -94,7 +100,9 @@ export default {
             selectedUser: null,
             isLoadingHistory: false,
             page: 0,
-            isMuted: false
+            isMuted: false,
+            isMobile: false,
+            showChatWindow: false
         }
     },
     computed: {
@@ -112,8 +120,21 @@ export default {
         this.messages = [];
         this.initializeChat();
         this.$notifier.setActiveRoom(this.roomId);
+        this.checkMobile();
+        
+        // Nếu có roomId từ URL (do nhấn thông báo), hiển thị cửa sổ chat luôn
+        if (this.$route.query.roomId) {
+            this.showChatWindow = true;
+        }
+
+        if (process.client) {
+            window.addEventListener('resize', this.checkMobile);
+        }
     },
     beforeDestroy() {
+        if (process.client) {
+            window.removeEventListener('resize', this.checkMobile);
+        }
         this.$notifier.setActiveRoom(null);
         if (this.socket) {
             this.socket.off('connect', this.onSocketConnect);
@@ -128,6 +149,14 @@ export default {
         }
     },
     methods: {
+        checkMobile() {
+            if (process.client) {
+                this.isMobile = window.innerWidth <= 768;
+            }
+        },
+        closePrivateChat() {
+            this.switchRoom('general');
+        },
         loadUser() {
             try {
                 const userStr = localStorage.getItem('user');
@@ -163,22 +192,31 @@ export default {
             }
         },
         switchRoom(roomId) {
-            if (this.roomId === roomId) return;
+            if (this.roomId === roomId && this.showChatWindow) return;
             this.roomId = roomId;
             this.selectedUser = null;
             this.messages = [];
+            this.showChatWindow = true; // Hiện khung chat trên mobile
             this.socket.emit('join_room', { roomId: this.roomId });
             this.fetchChatHistory();
         },
         switchPrivateRoom(user) {
             const privateRoomId = this.getPrivateRoomId(this.currentUser.id, user.id);
-            if (this.roomId === privateRoomId) return;
+            if (this.roomId === privateRoomId && this.showChatWindow) return;
             this.roomId = privateRoomId;
             this.selectedUser = user;
             this.$set(user, 'hasNewMessage', false);
             this.messages = [];
+            this.showChatWindow = true; // Hiện khung chat trên mobile
             this.socket.emit('join_room', { roomId: this.roomId });
             this.fetchChatHistory();
+        },
+        handleBack() {
+            if (this.isMobile && this.showChatWindow) {
+                this.showChatWindow = false;
+            } else {
+                this.goBack();
+            }
         },
         getPrivateRoomId(id1, id2) {
             const sortedIds = [id1, id2].sort((a, b) => a - b);
