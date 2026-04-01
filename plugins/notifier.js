@@ -13,11 +13,24 @@ export default (context, inject) => {
 
     // 2. Initialize Logic (Client-side only)
     if (process.client) {
-        let socketUrl = context.env.SOCKET_URL || '';
+        // Priority: 1. Nuxt Config, 2. Environment Variable, 3. Auto-detection
+        let socketUrl = (context.$config && context.$config.socketUrl) || context.env.SOCKET_URL || '';
+        
         if (!socketUrl) {
-            socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`;
+            const isLocal = window.location.hostname === 'localhost' || 
+                           window.location.hostname.startsWith('127.') || 
+                           window.location.hostname.startsWith('192.168.');
+            
+            if (isLocal) {
+                socketUrl = `http://${window.location.hostname}:3001`;
+            } else {
+                // Production: Use current protocol and host
+                // Render/Cloud usually maps external 443 to internal port
+                socketUrl = `${window.location.protocol}//${window.location.hostname}`;
+            }
         }
-        console.log('Connecting to Global Socket.IO at:', socketUrl);
+        
+        console.log('Notifier: Connecting to Socket.IO at:', socketUrl);
         
         // Initialize Sound - Use a more reliable sound URL
         state.notificationSound = new Audio('https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3');
