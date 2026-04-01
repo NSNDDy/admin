@@ -72,7 +72,8 @@ export default {
   */
   plugins: [
     '~/plugins/axios.js',
-    '~/plugins/repository.js'
+    '~/plugins/repository.js',
+    { src: '~/plugins/notifier.js', mode: 'client' }
   ],
   /*
   ** Nuxt.js dev-modules

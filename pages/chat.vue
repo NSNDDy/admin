@@ -1,13 +1,46 @@
 <template>
     <div class="chat-page">
     <div class="chat-container">
+        <div class="chat-sidebar">
+            <div class="sidebar-header">
+                <h3>Người dùng</h3>
+            </div>
+            <div class="user-list">
+                <div class="user-item" :class="{ active: roomId === 'general' }" @click="switchRoom('general')">
+                    <div class="user-info">
+                        <span class="username">Phòng chung</span>
+                        <span class="status-indicator online"></span>
+                    </div>
+                </div>
+                <div v-for="user in otherUsers" :key="user.id" 
+                    class="user-item" 
+                    :class="{ active: isCurrentPrivateRoom(user) }"
+                    @click="switchPrivateRoom(user)">
+                    <div class="user-avatar">
+                        <img :src="user.avatar || 'https://via.placeholder.com/40'" alt="avatar">
+                    </div>
+                    <div class="user-info">
+                        <span class="username">{{ user.username }}</span>
+                        <div class="user-meta">
+                            <span v-if="user.hasNewMessage" class="unread-dot"></span>
+                            <span class="status-indicator" :class="{ online: user.isOnline }"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="chat-wrapper">
             <div class="chat-header">
                 <div class="chat-header-title">
-                    <h2>Chat Room: {{ roomId }}</h2>
-                    <p class="status" :class="{ online: isConnected }">
-                        {{ isConnected ? '🟢 Online' : '🔴 Offline' }}
-                    </p>
+                    <h2>{{ chatTitle }}</h2>
+                    <div class="d-flex align-items-center gap-2">
+                        <p class="status m-0" :class="{ online: isConnected }">
+                            {{ isConnected ? '🟢 Online' : '🔴 Offline' }}
+                        </p>
+                        <button @click="toggleMute" class="btn-mute" :title="isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'">
+                            <i class="fas" :class="isMuted ? 'fa-volume-mute' : 'fa-volume-up'"></i>
+                        </button>
+                    </div>
                 </div>
                 <button @click="goBack" class="btn-back">← Quay lại</button>
             </div>
@@ -46,8 +79,6 @@
 </template>
 
 <script>
-import io from 'socket.io-client'
-
 export default {
     name: 'ChatPage',
     layout: 'default',
@@ -55,23 +86,45 @@ export default {
     data() {
         return {
             socket: null,
-            isConnected: false,
             newMessage: '',
             messages: [],
             currentUser: null,
-            roomId: 'general',
+            otherUsers: [],
+            roomId: this.$route.query.roomId || 'general',
+            selectedUser: null,
             isLoadingHistory: false,
-            page: 0
+            page: 0,
+            isMuted: false
+        }
+    },
+    computed: {
+        isConnected() {
+            return this.$notifier && this.$notifier.state.isConnected;
+        },
+        chatTitle() {
+            if (this.roomId === 'general') return 'Phòng chung';
+            return this.selectedUser ? `Chat với: ${this.selectedUser.username}` : 'Đang tải...';
         }
     },
     mounted() {
         this.loadUser();
+        this.fetchUsers();
         this.messages = [];
         this.initializeChat();
+        this.$notifier.setActiveRoom(this.roomId);
     },
     beforeDestroy() {
+        this.$notifier.setActiveRoom(null);
         if (this.socket) {
-            this.socket.disconnect();
+            this.socket.off('connect', this.onSocketConnect);
+            this.socket.off('disconnect', this.onSocketDisconnect);
+            this.socket.off('receive_message', this.onReceiveMessage);
+            this.socket.off('private_notification', this.onPrivateNotification);
+        }
+    },
+    watch: {
+        roomId(newRoomId) {
+            this.$notifier.setActiveRoom(newRoomId);
         }
     },
     methods: {
@@ -85,78 +138,128 @@ export default {
                 console.error("Error parsing user data", e);
             }
         },
-        initializeChat() {
-            const token = localStorage.getItem('accessToken');
-            if (!token) {
-                this.$router.push('/login');
-                return;
-            }
-
-            // Determine Socket URL
-            // Production: $config.socketUrl (set qua env SOCKET_URL trên Render)
-            // Local: kết nối trực tiếp tới hostname:3001
-            let socketUrl = this.$config.socketUrl || process.env.SOCKET_URL;
-            if (!socketUrl) {
-                socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`;
-            }
-            console.log('Connecting to Socket.IO at:', socketUrl);
-
-            // Kết nối tới server Socket.IO
-            this.socket = io(socketUrl, {
-                transports: ['websocket', 'polling'],
-                path: '/socket.io',
-                reconnection: true,
-                reconnectionAttempts: 10,
-                reconnectionDelay: 1000,
-                reconnectionDelayMax: 5000,
-                query: { token }
-            });
-
-            this.socket.on('connect', () => {
-                this.isConnected = true;
-                console.log('Connected to chat server');
-
-                // Join Room (cả lần đầu và reconnect)
-                this.socket.emit('join_room', {
-                    roomId: this.roomId
-                });
-
-                this.fetchChatHistory();
-            });
-
-            this.socket.on('reconnect', () => {
-                console.log('Reconnected - re-joining room');
-            });
-
-            this.socket.on('disconnect', (reason) => {
-                this.isConnected = false;
-                console.log('Disconnected from server:', reason);
-            });
-
-            this.socket.on('connect_error', (err) => {
-                console.error('Connection Error:', err.message);
-                this.isConnected = false;
-                if (err.message === "Authentication error") {
-                    alert("Phiên đăng nhập hết hạn.");
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('user');
-                    this.$router.push('/login');
+        async fetchUsers() {
+            try {
+                const res = await this.$api.chat.getUsers();
+                if (this.currentUser) {
+                    this.otherUsers = res.filter(u => u.id !== this.currentUser.id);
+                } else {
+                    this.otherUsers = res;
                 }
-            });
 
-            // Nhận tin nhắn từ Server (bao gồm cả tin mình vừa gửi)
-            this.socket.on('receive_message', (message) => {
-                this.messages.push(message);
-                this.scrollToBottom();
-                try {
-                    localStorage.setItem(`chat_history_${this.roomId}`, JSON.stringify(this.messages));
-                } catch (e) {}
-            });
+                // Nếu có roomId từ query (do nhấn thông báo), tự động tìm và set selectedUser
+                if (this.$route.query.roomId && this.$route.query.roomId.startsWith('private_')) {
+                    const parts = this.$route.query.roomId.split('_');
+                    const otherId = parts.find(id => id != this.currentUser.id && id !== 'private');
+                    if (otherId) {
+                        const targetUser = this.otherUsers.find(u => u.id == otherId);
+                        if (targetUser) {
+                            this.selectedUser = targetUser;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error fetching users", e);
+            }
+        },
+        switchRoom(roomId) {
+            if (this.roomId === roomId) return;
+            this.roomId = roomId;
+            this.selectedUser = null;
+            this.messages = [];
+            this.socket.emit('join_room', { roomId: this.roomId });
+            this.fetchChatHistory();
+        },
+        switchPrivateRoom(user) {
+            const privateRoomId = this.getPrivateRoomId(this.currentUser.id, user.id);
+            if (this.roomId === privateRoomId) return;
+            this.roomId = privateRoomId;
+            this.selectedUser = user;
+            this.$set(user, 'hasNewMessage', false);
+            this.messages = [];
+            this.socket.emit('join_room', { roomId: this.roomId });
+            this.fetchChatHistory();
+        },
+        getPrivateRoomId(id1, id2) {
+            const sortedIds = [id1, id2].sort((a, b) => a - b);
+            return `private_${sortedIds[0]}_${sortedIds[1]}`;
+        },
+        isCurrentPrivateRoom(user) {
+            if (!this.currentUser) return false;
+            return this.roomId === this.getPrivateRoomId(this.currentUser.id, user.id);
+        },
+        toggleMute() {
+            this.isMuted = !this.isMuted;
+            if (this.$notifier && this.$notifier.state.notificationSound) {
+                this.$notifier.state.notificationSound.muted = this.isMuted;
+                // Play a tiny silent sound to "unlock" audio on first click
+                if (!this.isMuted) {
+                    this.$notifier.state.notificationSound.play().catch(() => {});
+                }
+            }
+        },
+        onSocketConnect() {
+            console.log('Chat Page: Socket connected, joining room:', this.roomId);
+            this.socket.emit('join_room', { roomId: this.roomId });
+            this.fetchChatHistory();
+        },
+        onSocketDisconnect() {
+            // isConnected updated via computed
+        },
+        onReceiveMessage(message) {
+            console.log('Chat Page: Received message in room:', message.roomId, 'Current room:', this.roomId);
+            if (message.roomId === this.roomId) {
+                const exists = this.messages.some(m => m.id === message.id);
+                if (!exists) {
+                    this.messages.push(message);
+                    this.$nextTick(() => {
+                        this.scrollToBottom();
+                    });
+                }
+            }
+        },
+        onPrivateNotification(message) {
+            console.log('Chat Page: Received private notification for room:', message.roomId);
+            const user = this.otherUsers.find(u => u.id === message.sender.id);
+            if (user) {
+                this.$set(user, 'hasNewMessage', true);
+            }
+            
+            if (message.roomId === this.roomId) {
+                const exists = this.messages.some(m => m.id === message.id);
+                if (!exists) {
+                    console.log('Chat Page: Pushing private message to current view');
+                    this.messages.push(message);
+                    this.$nextTick(() => {
+                        this.scrollToBottom();
+                    });
+                }
+            }
+        },
+        initializeChat() {
+            console.log('Initializing chat with user:', this.currentUser?.username);
+            this.socket = this.$notifier.state.socket;
+            if (!this.socket) {
+                this.$notifier.initSocket();
+                this.socket = this.$notifier.state.socket;
+            }
 
-            // Nhận thông báo lỗi từ Server
-            this.socket.on('error', (error) => {
-                alert('Chat Error: ' + error.message);
-            });
+            if (this.socket) {
+                // Clean up previous to avoid duplicates
+                this.socket.off('connect', this.onSocketConnect);
+                this.socket.off('disconnect', this.onSocketDisconnect);
+                this.socket.off('receive_message', this.onReceiveMessage);
+                this.socket.off('private_notification', this.onPrivateNotification);
+
+                this.socket.on('connect', this.onSocketConnect);
+                this.socket.on('disconnect', this.onSocketDisconnect);
+                this.socket.on('receive_message', this.onReceiveMessage);
+                this.socket.on('private_notification', this.onPrivateNotification);
+
+                if (this.isConnected) {
+                    this.onSocketConnect();
+                }
+            }
         },
         sendMessage() {
             if (!this.newMessage.trim() || !this.isConnected) return;
@@ -195,31 +298,24 @@ export default {
         }
         ,
         async fetchChatHistory() {
+            if (this.isLoadingHistory) return;
             this.isLoadingHistory = true;
+            const currentRoomId = this.roomId;
             try {
-                // SỬ DỤNG SERVICE PATTERN (Mới)
-                // Không cần lấy token thủ công, không cần set header thủ công
                 const res = await this.$api.chat.getHistory(this.roomId);
-                
-                // Kiểm tra data trả về 
-                const historyData = Array.isArray(res) ? res : (res.data || []);
-                
-                if (historyData.length > 0) {
-                    this.messages = historyData;
-                    try {
-                        localStorage.setItem(`chat_history_${this.roomId}`, JSON.stringify(this.messages));
-                    } catch (e) {}
-                    this.scrollToBottom();
-                }
-            } catch (error) {
-                console.error("Lỗi tải lịch sử chat:", error);
-                try {
-                    const cached = localStorage.getItem(`chat_history_${this.roomId}`);
-                    if (cached) {
-                        this.messages = JSON.parse(cached);
+                // Only update if we are still in the same room
+                if (currentRoomId === this.roomId) {
+                    // Merge existing new messages with history
+                    const history = res.data || [];
+                    const newMessages = this.messages.filter(m => !history.some(h => h.id === m.id));
+                    this.messages = [...history, ...newMessages];
+                    
+                    this.$nextTick(() => {
                         this.scrollToBottom();
-                    }
-                } catch (e) {}
+                    });
+                }
+            } catch (e) {
+                console.error("Error fetching chat history", e);
             } finally {
                 this.isLoadingHistory = false;
             }

@@ -1,5 +1,6 @@
 <template>
     <div class="layout-wrapper">
+        <GlobalNotification />
         <Header />
         <div class="layout-container">
             <Aside :isOpen="sidebarOpen" @toggle="toggleSidebar" @close="closeSidebar" />
@@ -14,11 +15,13 @@
 import Header from '~/components/Header'
 import Footer from '~/components/Footer'
 import Aside from '~/components/Aside';
+import GlobalNotification from '~/components/GlobalNotification';
 export default {
     components: {
         Header,
         Footer,
-        Aside
+        Aside,
+        GlobalNotification
     },
     data() {
         return {

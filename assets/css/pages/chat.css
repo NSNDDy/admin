@@ -5,6 +5,98 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 1rem;
+  gap: 1rem;
+}
+
+.chat-page .chat-sidebar {
+  width: 250px;
+  height: 80vh;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-page .chat-sidebar .sidebar-header {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.chat-page .chat-sidebar .sidebar-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.chat-page .user-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.chat-page .user-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.chat-page .user-item:hover {
+  background: #f8f9fa;
+}
+
+.chat-page .user-item.active {
+  background: #f0f4ff;
+  border-left: 4px solid #667eea;
+}
+
+.chat-page .user-avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.chat-page .user-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-page .user-info .username {
+  font-weight: 500;
+  color: #333;
+}
+
+.chat-page .user-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chat-page .unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4757;
+  box-shadow: 0 0 5px rgba(255, 71, 87, 0.5);
+}
+
+.chat-page .status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+}
+
+.chat-page .status-indicator.online {
+  background: #4ade80;
 }
 
 .chat-page .chat-wrapper {
@@ -39,14 +131,28 @@
   font-size: 1.5rem;
 }
 
-.chat-page .status {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 500;
+.chat-page .chat-header-title .status {
+  font-size: 0.85rem;
+  opacity: 0.8;
 }
 
-.chat-page .status.online {
-  color: #4ade80;
+.chat-page .btn-mute {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.chat-page .btn-mute:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
 }
 
 .chat-page .btn-back {
