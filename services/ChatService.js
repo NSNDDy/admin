@@ -11,6 +11,10 @@ export default class ChatService extends BaseService {
     });
   }
 
+  async getUsers() {
+    return await this.$axios.$get(`${this.resource}/users`);
+  }
+
   // Ví dụ: Gửi tin nhắn (Nếu dùng HTTP thay vì Socket)
   async sendMessage(data) {
     return await this.create(data);

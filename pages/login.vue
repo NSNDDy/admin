@@ -163,6 +163,11 @@ export default {
           const finalExpiryMs = jwtExpiryMs ? Math.min(jwtExpiryMs, clientExpiryMs) : clientExpiryMs
           localStorage.setItem('tokenExpiry', String(finalExpiryMs));
           
+          // Re-initialize socket with new token
+          if (this.$notifier) {
+            this.$notifier.initSocket();
+          }
+
           // Redirect vào trang Dashboard
           this.$router.push("/dashboard");
         } else {
