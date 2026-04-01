@@ -67,11 +67,78 @@
   padding: 0;
 }
 
+@media (max-width: 992px) {
+  .month-page .month-view-layout {
+    flex-direction: column;
+  }
+  
+  .month-page .mv-right {
+    width: 100%;
+  }
+}
+
 .month-page .mv-table-area {
   position: relative;
   z-index: 1;
   max-width: 1280px;
   margin: 16px auto 0;
+}
+
+@media (max-width: 768px) {
+  .month-page .month-view {
+    padding: 12px;
+  }
+
+  .month-page .mv-back {
+    margin-left: 0;
+    margin-bottom: 12px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .month-page .mv-top-area {
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .month-page .mv-date-card {
+    position: static;
+    width: 100%;
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .month-page .mv-date-day {
+    font-size: 64px;
+    margin: 10px 0;
+  }
+
+  .month-page .mv-calendar-card {
+    padding: 16px;
+  }
+
+  .month-page .mv-dow-row,
+  .month-page .mv-days-grid {
+    grid-template-columns: repeat(7, 1fr);
+    width: 100%;
+    gap: 2px;
+  }
+
+  .month-page .mv-day {
+    width: auto;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .month-page .mv-clock-card {
+    padding: 16px;
+  }
+
+  .month-page .mv-clock-time {
+    font-size: 32px;
+  }
 }
 
 .month-page .mv-left {
