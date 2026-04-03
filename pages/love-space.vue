@@ -29,7 +29,7 @@
     <!-- Photo Gallery Section -->
     <div v-if="currentStep === 'photos'" class="gallery-container fade-in">
       <div class="photo-card glass-panel">
-        <h2 class="letter-title">Happy Valentine</h2>
+        <h2 class="letter-title">Happy Anniversary</h2>
         <div class="photo-slider">
           <img :src="photos[currentPhotoIndex]" alt="Memory" class="slide-img">
           <div class="slider-controls">
@@ -50,7 +50,7 @@
     </div>
 
     <!-- Hidden Audio -->
-    <audio ref="bgMusic" src="/music/love-story.mp3" @ended="onMusicEnded"></audio>
+    <!-- <audio ref="bgMusic" src="/music/love-story.mp3" @ended="onMusicEnded"></audio> -->
   </div>
 </template>
 
@@ -66,10 +66,10 @@ export default {
       typeSpeed: 55,
       currentPhotoIndex: 0,
       photos: [
-        '/images/portfolio/app-1.jpg',
-        '/images/portfolio/app-2.jpg',
-        '/images/portfolio/app-3.jpg',
-        '/images/portfolio/books-1.jpg'
+        '/images/portfolio/anhdoi1.jpg',
+        '/images/portfolio/anhdoi2.jpg',
+        '/images/portfolio/anhdoi3.jpg',
+        '/images/portfolio/anhdoi4.jpg'
       ],
       showRedirect: false,
       autoSlideInterval: null,
