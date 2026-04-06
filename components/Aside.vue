@@ -48,6 +48,12 @@
                         <span v-show="isOpen" class="ml-2">News</span>
                     </a>
                 </li>
+                <li>
+                    <a href="https://love.tsonit.com/ahihihoho" @click="closeSidebar" :title="!isOpen ? 'News' : ''">
+                        <i class="fa-solid fa-heart"></i>
+                        <span v-show="isOpen" class="ml-2">Love-Story</span>
+                    </a>
+                </li>
             </ul>
         </aside>
         <div class="sidebar-overlay" v-if="isOpen" @click="toggleSidebar"></div>

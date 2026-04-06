@@ -6,7 +6,7 @@
 
 export default {
   mounted(){
-    this.$router.replace('/love-space')
+    this.$router.replace('/portfolio')
   },
   components: {
     // Header
